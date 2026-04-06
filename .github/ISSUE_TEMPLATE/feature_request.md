@@ -1,22 +1,28 @@
 ---
-name: ✨ Feature Request
-about: Propón una nueva funcionalidad o mejora
+name: Feature Request
+about: Proponer una nueva funcionalidad
 title: "[FEAT] "
 labels: enhancement
-assignees: ''
 ---
 
-## ¿La funcionalidad está relacionada con algún problema?
-<!-- Describe el problema. Ej: Siempre me frustra cuando... -->
+## ¿Qué quieres añadir?
+<!-- Describe la funcionalidad -->
 
-## Solución propuesta
-<!-- Descripción clara y concisa de lo que quieres que ocurra -->
+## ¿Por qué es necesaria?
+<!-- Explica el caso de uso -->
 
-## Alternativas consideradas
-<!-- Otras soluciones o funcionalidades que hayas evaluado -->
+## Prioridad
+- [ ] 🔴 Alta — Necesaria para el TFG
+- [ ] 🟡 Media — Mejora importante
+- [ ] 🟢 Baja — Nice to have
 
-## Módulo de Django afectado
-<!-- Ej: Base/views.py, templates/login.html, models.py... -->
+## Módulo relacionado
+- [ ] Autenticación / Registro
+- [ ] Gestión de alquileres
+- [ ] Base de datos / Modelos
+- [ ] Templates / Frontend
+- [ ] Nuevo módulo
 
-## Contexto adicional
-<!-- Capturas, mockups, o cualquier otro contexto -->
+## Checklist
+- [ ] He buscado y no existe una propuesta similar
+- [ ] Encaja dentro del alcance del TFGer otro contexto -->

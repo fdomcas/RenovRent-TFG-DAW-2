@@ -1,30 +1,20 @@
-## Descripción
-<!-- Explica qué hace este PR y por qué es necesario -->
-
-## Tipo de cambio
-- [ ] 🐛 Bug fix (corrección que soluciona un problema)
-- [ ] ✨ Nueva funcionalidad
-- [ ] 🔨 Refactor (cambio que no añade funcionalidad ni corrige un bug)
-- [ ] 📝 Documentación
-- [ ] 🎨 Estilos / UI
-- [ ] ⚙️ Configuración / DevOps
+## ¿Qué hace este PR?
+<!-- Breve descripción del cambio -->
 
 ## Issue relacionada
-<!-- Usa "Closes #XX" para cerrar la issue automáticamente -->
 Closes #
 
-## Cambios realizados
-<!-- Lista los ficheros o módulos más importantes modificados -->
-- 
-- 
+## Tipo de cambio
+- [ ] 🐛 Bug fix
+- [ ] ✨ Nueva funcionalidad
+- [ ] 🔨 Refactor / limpieza de código
+- [ ] 🎨 Estilos / UI
+- [ ] 📝 Documentación
 
 ## Checklist
-- [ ] El código sigue el estilo del proyecto
-- [ ] He probado los cambios en local
-- [ ] No hay archivos `.pyc` ni `__pycache__` incluidos
-- [ ] La base de datos no se ha modificado sin una migración
-- [ ] Los templates HTML funcionan correctamente en navegador
-- [ ] He actualizado el `.gitignore` si es necesario
-
-## Capturas (si aplica)
-<!-- Antes / Después, o pantallas del resultado -->
+- [ ] Probado en local sin errores
+- [ ] Sin archivos `__pycache__` ni `db.sqlite3`
+- [ ] Migraciones generadas si toqué modelos
+- [ ] No hay datos sensibles ni contraseñas en el código
+- [ ] Rama actualizada respecto a `Develop`
+- [ ] Los templates renderizan bien en el navegadorultado -->
