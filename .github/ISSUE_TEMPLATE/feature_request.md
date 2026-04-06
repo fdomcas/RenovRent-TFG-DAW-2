@@ -23,6 +23,3 @@ labels: enhancement
 - [ ] Templates / Frontend
 - [ ] Nuevo módulo
 
-## Checklist
-- [ ] He buscado y no existe una propuesta similar
-- [ ] Encaja dentro del alcance del TFGer otro contexto -->

@@ -30,6 +30,5 @@ labels: bug
 - [ ] Otro
 
 ## Checklist
-- [ ] He comprobado que no existe una issue igual
 - [ ] El error ocurre en la rama `Develop`
 - [ ] He incluido el traceback o captura
