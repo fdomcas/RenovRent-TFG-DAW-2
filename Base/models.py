@@ -1,9 +1,5 @@
 from datetime import datetime, date
-from symtable import Class
-
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django import forms
 from django.core.exceptions import ValidationError
 import requests
 # Create your models here.
@@ -20,13 +16,14 @@ class Usuario(models.Model):
         return self.nombre + " " + self.apellidos
 
 
-    def clean_edad(self):
-        fecha = self.cleaned_data.get('fecha_nacimiento')
+    def clean(self):
+        fecha = self.fecha_nacimiento
         hoy = date.today()
-        edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (hoy.month, hoy.day))
+        edad = hoy.year - self.fecha_nacimiento.year - ((hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day))
         if edad < 18:
-            raise forms.ValidationError("Debes tener almenos 18 años para poder registrarte")
-        return fecha
+            raise ValidationError("Debes tener almenos 18 años para poder registrarte")
+
+
 
 
 class Tarjeta(models.Model):
@@ -39,25 +36,25 @@ class Tarjeta(models.Model):
     def __str__(self):
         return self.Nombre_titular
 
-    def clean_fecha_caducidad(self):
-        fecha = self.cleaned_data.get('fecha_caducidad')
+    def clean(self):
+        fecha = self.fecha_caducidad
         hoy = date.today()
         if fecha < hoy:
-            raise forms.ValidationError("La Tarjeta esta caducada")
-        return fecha
+            raise ValidationError("La Tarjeta esta caducada")
+
 
 
 class Dinero(models.Model):
-    id_tarjeta = models.ForeignKey(Tarjeta)
+    id_tarjeta = models.ForeignKey(Tarjeta, on_delete=models.CASCADE)
     Dinero = models.IntegerField()
 
     def __str__(self):
-        return self.Dinero
+        return str(self.Dinero)
 
-    def clean_Dinero(self):
+    def clean(self):
         if self.Dinero < 0:
-            raise forms.ValidationError("Dinero no valido")
-        return self.Dinero
+            raise ValidationError("Dinero no valido")
+
 
 
 
@@ -94,8 +91,50 @@ class Propuestas(models.Model):
     def __str__(self):
         return self.url
 
-    def clean_url(self):
-        url = self.cleaned_data.get('url')
+    def clean(self):
+        url = self.url
         if url:
             validar_url_segura(url)
-        return url
+
+
+class Inmuebles(models.Model):
+    nombre = models.CharField(max_length=100)
+    ubicacion = models.TextField()
+    fotos = models.FileField(upload_to='fotos/')
+
+class Caracteristicas_Inmuebles(models.Model):
+    id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
+    num_habitaciones = models.IntegerField()
+    num_wc= models.IntegerField()
+    m2 = models.IntegerField()
+    espacios = models.TextField()
+    extras = models.TextField()
+
+    def __str__(self):
+        return str(self.num_habitaciones)
+
+
+class Inversiones(models.Model):
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    retorno_mensual = models.IntegerField()
+    retorno_anual = models.IntegerField()
+
+
+class Chat(models.Model):
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
+
+
+class Mensaje(models.Model):
+    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    id_chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
+    mensaje = models.TextField()
+    fecha = models.DateField(default=date.today)
+
+
+    def __str__(self):
+        return self.mensaje
+
+
