@@ -2,13 +2,13 @@ from datetime import datetime, date
 from django.db import models
 from django.core.exceptions import ValidationError
 import requests
+from django.contrib.auth.models import AbstractUser
 # Create your models here.
 
-class Usuario(models.Model):
+class Usuario(AbstractUser):
     nombre = models.CharField(max_length=100)
     apellidos = models.CharField(max_length=250)
     Nikname = models.CharField(max_length=250, unique=True)
-    Email = models.EmailField(unique=True)
     fecha_nacimiento = models.DateField()
     dni = models.CharField(max_length=9, unique=True)
 
