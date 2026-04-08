@@ -12,12 +12,15 @@ class Usuario(AbstractUser):
     fecha_nacimiento = models.DateField()
     dni = models.CharField(max_length=9, unique=True)
 
+
+
+    REQUIRED_FIELDS = ['nombre', 'apellidos', 'Nikname', 'email', 'fecha_nacimiento', 'dni']
+
     def __str__(self):
         return self.nombre + " " + self.apellidos
 
 
     def clean(self):
-        fecha = self.fecha_nacimiento
         hoy = date.today()
         edad = hoy.year - self.fecha_nacimiento.year - ((hoy.month, hoy.day) < (self.fecha_nacimiento.month, self.fecha_nacimiento.day))
         if edad < 18:
@@ -25,6 +28,8 @@ class Usuario(AbstractUser):
 
 
 
+class Perfil(models.Model):
+    id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
 
 class Tarjeta(models.Model):
     id_usuario = models.ManyToManyField(Usuario)
