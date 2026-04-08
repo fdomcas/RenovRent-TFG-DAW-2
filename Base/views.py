@@ -24,7 +24,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
             return RegistroSerializer
         return RegistroSerializer
 
-    @action(detail=True, methods=['get'])
+    @action(detail=False, methods=['get'])
     def me(self,request):
         return Response(UsuarioSerializer(request.user).data)
 
@@ -34,7 +34,7 @@ class InmuebleViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = inmuebleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-class ProductoViewSet(viewsets.ModelViewSet):
+class PropuestaViewSet(viewsets.ModelViewSet):
     serializer_class = PropuestasSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -45,7 +45,7 @@ class ProductoViewSet(viewsets.ModelViewSet):
         serializer.save(usuario=self.request.user)
 
 
-class InventarioViewSet(viewsets.ModelViewSet):
+class InversionesViewSet(viewsets.ModelViewSet):
     serializer_class = InversionesSerializer
     Permission_classes = [permissions.IsAuthenticated]
 

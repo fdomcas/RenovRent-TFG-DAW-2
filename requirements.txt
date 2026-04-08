@@ -2,3 +2,5 @@ requests
 djangorestframework
 djangorestframework-simplejwt
 djangorestframework-stubs
+channels-redis
+channels
