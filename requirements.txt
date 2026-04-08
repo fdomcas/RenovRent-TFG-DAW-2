@@ -4,3 +4,5 @@ djangorestframework-simplejwt
 djangorestframework-stubs
 channels-redis
 channels
+WebSocket
+websockets

@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Base.apps.BaseConfig',
      'rest_framework',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -71,8 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'renovrent_tfg_daw_2.wsgi.application'
-
+ASGI_APPLICATION = 'renovrent_tfg_daw_2.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -140,4 +140,13 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('localhost', 6379)],
+        }
+    }
 }
