@@ -42,7 +42,7 @@ class InversionesSerializer(serializers.ModelSerializer):
     class Meta:
         model= Inversiones
         fields = '__all__'
-        read_only_fields = ('id_usuario',)
+        read_only_fields = ('id_usuario', 'retorno_mensual', 'retorno_anual')
 
 
 

@@ -56,27 +56,19 @@ class InversionesViewSet(viewsets.ModelViewSet):
         inmueble = serializer.validated_data.get('id_inmueble')
         cantidad = serializer.validated_data.get('cantidad')
 
-
-        total_invertido = inmueble.inversiones_set.aggregate(Sum('cantidad'))['cantidad__sum'] or 0
-
-        maximo = inmueble.precio / 2
-        disponible = maximo - total_invertido
-
-        if cantidad > disponible:
+        if cantidad > inmueble.disponible_para_invertir:
             raise ValidationError(
-                f"Solo quedan {disponible}€ disponible para invertir en este inmueble. "
+                f"Solo quedan {inmueble.disponible_para_invertir}€ disponibles para invertir."
             )
 
-        retorno_anual= cantidad * inmueble.retorno_anual_porcentaje /100
-        retorno_mensual =  retorno_anual / 12
+        retorno_anual = cantidad * inmueble.retorno_anual_porcentaje / 100
+        retorno_mensual = retorno_anual / 12
 
         serializer.save(
             id_usuario=self.request.user,
-            retorno_anual=round(retorno_anual,2),
-            retorno_mensual=round(retorno_mensual,2),
+            retorno_anual=round(retorno_anual, 2),
+            retorno_mensual=round(retorno_mensual, 2),
         )
-
-
 
 
 class MesajeViewSet(viewsets.ModelViewSet):
