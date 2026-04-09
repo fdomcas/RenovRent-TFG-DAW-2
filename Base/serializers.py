@@ -9,15 +9,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
 
 class RegistroSerializer(serializers.ModelSerializer):
-    pasword = serializers.CharField(write_only=True, min_length=6)
+    password = serializers.CharField(write_only=True, min_length=6)
 
     class Meta:
         model = Usuario
-        fields = ['username', 'nombre', 'apellidos', 'Nikname','email', 'fec1a_nacimiento', 'dni', 'password']
+        fields = ['username', 'nombre', 'apellidos', 'Nikname','email','fecha_nacimiento', 'dni', 'password']
 
 
     def create(self, validated_data):
-        return Usuario.objects.create(**validated_data)
+        return Usuario.objects.create_user(**validated_data)
 
 
 
