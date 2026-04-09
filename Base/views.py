@@ -13,6 +13,7 @@ from .serializers import *
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
 
     def  get_permissions(self):
         if self.action == 'create':
@@ -22,8 +23,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return RegistroSerializer
-        return RegistroSerializer
-
+        return UsuarioSerializer
     @action(detail=False, methods=['get'])
     def me(self,request):
         return Response(UsuarioSerializer(request.user).data)
@@ -39,21 +39,21 @@ class PropuestaViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Propuestas.objects.filter(usuario=self.request.user)
+        return Propuestas.objects.filter(id_usuario=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
+        serializer.save(id_usuario=self.request.user)
 
 
 class InversionesViewSet(viewsets.ModelViewSet):
     serializer_class = InversionesSerializer
-    Permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Inversiones.objects.filter(usuario=self.request.user)
+        return Inversiones.objects.filter(id_usuario=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
+        serializer.save(id_usuario=self.request.user)
 
 
 class MesajeViewSet(viewsets.ModelViewSet):
@@ -61,18 +61,18 @@ class MesajeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        chat_id = self.request.query_params.get('chat_id')
+        chat_id = self.request.query_params.get('id_chat')
         if chat_id:
             return Mensaje.objects.filter(chat_id=chat_id)
         return Mensaje.objects.none()
 
 
     def perform_create(self, serializer):
-        chat = serializer.validated_data.get['id_chat']
+        chat = serializer.validated_data.get('id_chat')
         tiene_inversion= Inversiones.objects.filter(
             id_usuario = self.request.user,
             id_inmueble = chat.id_inmueble
         ).exists()
         if not tiene_inversion:
             raise PermissionDenied('Debes invertir par hablar en este inmueble')
-        serializer.save(usuario=self.request.user)
+        serializer.save(id_usuario=self.request.user)
