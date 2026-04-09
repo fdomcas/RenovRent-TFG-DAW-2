@@ -103,9 +103,30 @@ class Propuestas(models.Model):
 
 
 class Inmuebles(models.Model):
+    TIPOS_CHOICES = [
+        # Residencial
+        ('Casa', 'Casa'),
+        ('Apartamento', 'Apartamento'),
+        ('Piso', 'Piso'),
+        ('Chalet', 'Chalet'),
+        ('Bungalow', 'Bungalow'),
+        ('Mansión', 'Mansión'),
+        ('Dúplex', 'Dúplex'),
+        ('Ático', 'Ático'),
+        ('Adosado', 'Adosado'),
+        # Comercial / Industrial
+        ('Local', 'Local Comercial'),
+        ('Oficina', 'Oficina'),
+        ('Nave', 'Nave Industrial'),
+        # Otros
+        ('Garaje', 'Garaje'),
+        ('Terreno', 'Terreno / Solar'),
+    ]
+
     nombre = models.CharField(max_length=100)
     ubicacion = models.TextField()
     fotos = models.FileField(upload_to='fotos/')
+    tipo= models.CharField(max_length=100, )
 
 class Caracteristicas_Inmuebles(models.Model):
     id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
