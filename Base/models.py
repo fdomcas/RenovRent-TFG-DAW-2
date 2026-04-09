@@ -126,7 +126,8 @@ class Inmuebles(models.Model):
     nombre = models.CharField(max_length=100)
     ubicacion = models.TextField()
     fotos = models.FileField(upload_to='fotos/')
-    tipo= models.CharField(max_length=100, )
+    tipo= models.CharField(max_length=100,)
+    precio= models.IntegerField(default=0)
 
 class Caracteristicas_Inmuebles(models.Model):
     id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)

@@ -53,7 +53,10 @@ class InversionesViewSet(viewsets.ModelViewSet):
         return Inversiones.objects.filter(id_usuario=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(id_usuario=self.request.user)
+        inmueble = serializer.validated_data.get('id_inmueble')
+        cantidad = serializer.validated_data.get('cantidad')
+
+
 
 
 class MesajeViewSet(viewsets.ModelViewSet):
