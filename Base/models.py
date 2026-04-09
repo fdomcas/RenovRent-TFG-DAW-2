@@ -123,11 +123,58 @@ class Inmuebles(models.Model):
         ('Terreno', 'Terreno / Solar'),
     ]
 
+    RETORNO_POR_TIPO = {
+        'Casa': 8.0,
+        'Apartamento': 7.0,
+        'Piso': 7.0,
+        'Chalet': 9.0,
+        'Bungalow': 6.5,
+        'Mansion': 10.0,
+        'Duplex': 7.5,
+        'Atico': 8.5,
+        'Adosado': 7.0,
+        'Local': 10.0,
+        'Oficina': 9.0,
+        'Nave': 8.0,
+        'Garaje': 5.0,
+        'Terreno': 4.0,
+    }
+
     nombre = models.CharField(max_length=100)
     ubicacion = models.TextField()
     fotos = models.FileField(upload_to='fotos/')
-    tipo= models.CharField(max_length=100,)
+    tipo= models.CharField(max_length=100, choices=TIPOS_CHOICES, default='Piso')
     precio= models.IntegerField(default=0)
+    retorno_anual_porcentaje = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+
+        self.retorno_anual_porcentaje = self.RETORNO_POR_TIPO.get(self.tipo, 5.0)
+        super().save(*args, **kwargs)
+
+
+
+    @property
+    def maximo_invertible(self):
+        return self.precio/2
+
+
+    @property
+    def total_invertible(self):
+        from django.db.models import Sum
+        resultado = self.inversiones_set.aggregate(Sum('cantidad'))['cantidad__sum']
+        return  resultado or 0
+
+    @property
+    def disponible_para_invertir(self):
+        return self.maximo_invertible - self.total_invertible
+
+
+    def __str__(self):
+        return self.nombre
+
+
+
 
 class Caracteristicas_Inmuebles(models.Model):
     id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
@@ -147,7 +194,6 @@ class Inversiones(models.Model):
     cantidad = models.IntegerField()
     retorno_mensual = models.IntegerField()
     retorno_anual = models.IntegerField()
-
 
 class Chat(models.Model):
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)

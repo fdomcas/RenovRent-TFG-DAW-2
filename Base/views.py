@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.db.models import Sum
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -55,6 +55,26 @@ class InversionesViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         inmueble = serializer.validated_data.get('id_inmueble')
         cantidad = serializer.validated_data.get('cantidad')
+
+
+        total_invertido = inmueble.inversiones_set.aggregate(Sum('cantidad'))['cantidad__sum'] or 0
+
+        maximo = inmueble.precio / 2
+        disponible = maximo - total_invertido
+
+        if cantidad > disponible:
+            raise ValidationError(
+                f"Solo quedan {disponible}€ disponible para invertir en este inmueble. "
+            )
+
+        retorno_anual= cantidad * inmueble.retorno_anual_porcentaje /100
+        retorno_mensual =  retorno_anual / 12
+
+        serializer.save(
+            id_usuario=self.request.user,
+            retorno_anual=round(retorno_anual,2),
+            retorno_mensual=round(retorno_mensual,2),
+        )
 
 
 
