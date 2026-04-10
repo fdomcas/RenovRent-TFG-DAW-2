@@ -39,7 +39,7 @@ class PropuestasAdmin(admin.ModelAdmin):
 # ── TARJETAS ──────────────────────────────────────────────
 @admin.register(Tarjeta)
 class TarjetaAdmin(admin.ModelAdmin):
-    list_display = ['Nombre_titular', 'fecha_caducidad', 'Estado']
+    list_display = ['nombre_titular', 'fecha_caducidad', 'estado']
 
 @admin.register(Dinero)
 class DineroAdmin(admin.ModelAdmin):

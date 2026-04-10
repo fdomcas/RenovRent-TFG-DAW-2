@@ -33,19 +33,24 @@ class Perfil(models.Model):
 
 class Tarjeta(models.Model):
     id_usuario = models.ManyToManyField(Usuario)
-    fecha_caducidad = models.DateField()
-    Nombre_titular = models.CharField(max_length=100)
-    Estado = models.BooleanField(default=True)
+    numero_tarjeta = models.CharField(max_length=19)
+    fecha_caducidad = models.CharField(max_length=7)
+    nombre_titular = models.CharField(max_length=100)
+    estado = models.BooleanField(default=True)
 
 
     def __str__(self):
-        return self.Nombre_titular
+        return self.nombre_titular
 
-    def clean(self):
-        fecha = self.fecha_caducidad
-        hoy = date.today()
-        if fecha < hoy:
-            raise ValidationError("La Tarjeta esta caducada")
+    def save(self, *args, **kwargs):
+        from datetime import date
+        try:
+            mes, anio = self.fecha_caducidad.split('/')
+            fecha = date(int(anio), int(mes), 1)
+            self.Estado = fecha >= date.today().replace(day=1)
+        except:
+            self.Estado = False
+        super().save(*args, **kwargs)
 
 
 
@@ -209,5 +214,3 @@ class Mensaje(models.Model):
 
     def __str__(self):
         return self.mensaje
-
-

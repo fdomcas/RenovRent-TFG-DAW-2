@@ -91,3 +91,15 @@ class MesajeViewSet(viewsets.ModelViewSet):
         if not tiene_inversion:
             raise PermissionDenied('Debes invertir par hablar en este inmueble')
         serializer.save(id_usuario=self.request.user)
+
+
+class tarjetaViewSet(viewsets.ModelViewSet):
+    serializer_class = TarjetaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Tarjeta.objects.filter(id_usuario=self.request.user)
+
+    def perform_create(self, serializer):
+        tarjeta = serializer.save()
+        tarjeta.id_usuario.add(self.request.user)
