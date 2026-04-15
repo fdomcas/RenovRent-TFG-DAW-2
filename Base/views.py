@@ -1,8 +1,8 @@
-from django.shortcuts import render
+from django.db.models import Sum
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from .models import *
 from .serializers import *
 # Create your views here.
@@ -56,7 +56,19 @@ class InversionesViewSet(viewsets.ModelViewSet):
         inmueble = serializer.validated_data.get('id_inmueble')
         cantidad = serializer.validated_data.get('cantidad')
 
+        if cantidad > inmueble.disponible_para_invertir:
+            raise ValidationError(
+                f"Solo quedan {inmueble.disponible_para_invertir}€ disponibles para invertir."
+            )
 
+        retorno_anual = cantidad * inmueble.retorno_anual_porcentaje / 100
+        retorno_mensual = retorno_anual / 12
+
+        serializer.save(
+            id_usuario=self.request.user,
+            retorno_anual=round(retorno_anual, 2),
+            retorno_mensual=round(retorno_mensual, 2),
+        )
 
 
 class MesajeViewSet(viewsets.ModelViewSet):
@@ -66,7 +78,7 @@ class MesajeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         chat_id = self.request.query_params.get('id_chat')
         if chat_id:
-            return Mensaje.objects.filter(chat_id=chat_id)
+            return Mensaje.objects.filter(id_chat=chat_id)
         return Mensaje.objects.none()
 
 
@@ -79,3 +91,15 @@ class MesajeViewSet(viewsets.ModelViewSet):
         if not tiene_inversion:
             raise PermissionDenied('Debes invertir par hablar en este inmueble')
         serializer.save(id_usuario=self.request.user)
+
+
+class TarjetaViewSet(viewsets.ModelViewSet):
+    serializer_class = TarjetaSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Tarjeta.objects.filter(id_usuario=self.request.user)
+
+    def perform_create(self, serializer):
+        tarjeta = serializer.save()
+        tarjeta.id_usuario.add(self.request.user)
