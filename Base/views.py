@@ -2,7 +2,7 @@ from django.db.models import Sum
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from .models import *
 from .serializers import *
 # Create your views here.
@@ -78,7 +78,7 @@ class MesajeViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         chat_id = self.request.query_params.get('id_chat')
         if chat_id:
-            return Mensaje.objects.filter(chat_id=chat_id)
+            return Mensaje.objects.filter(id_chat=chat_id)
         return Mensaje.objects.none()
 
 
@@ -93,7 +93,7 @@ class MesajeViewSet(viewsets.ModelViewSet):
         serializer.save(id_usuario=self.request.user)
 
 
-class tarjetaViewSet(viewsets.ModelViewSet):
+class TarjetaViewSet(viewsets.ModelViewSet):
     serializer_class = TarjetaSerializer
     permission_classes = [permissions.IsAuthenticated]
 
