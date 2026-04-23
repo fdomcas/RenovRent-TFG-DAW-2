@@ -9,7 +9,7 @@ router.register(r'inmuebles', views.InmuebleViewSet)
 router.register(r'propuestas', views.PropuestaViewSet, basename='propuestas')
 router.register(r'inversiones', views.InversionesViewSet, basename='inversiones')
 router.register(r'mensajes', views.MesajeViewSet, basename='mensajes')
-router.register(r'tarjetas', views.tarjetaViewSet, basename='tarjetas')
+router.register(r'tarjetas', views.TarjetaViewSet, basename='tarjetas')
 
 urlpatterns = [
     path('api/', include(router.urls)),

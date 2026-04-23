@@ -32,7 +32,7 @@ class UsuarioViewSet(viewsets.ModelViewSet):
 class InmuebleViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Inmuebles.objects.all()
     serializer_class = inmuebleSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
 class PropuestaViewSet(viewsets.ModelViewSet):
     serializer_class = PropuestasSerializer
