@@ -160,5 +160,5 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-MEDIA_URL = '/fotos/'
-MEDIA_ROOT = BASE_DIR / 'fotos'
+MEDIA_URL = '/'
+MEDIA_ROOT = BASE_DIR

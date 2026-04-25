@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../componentes/Navbar.jsx'
-import api from '../api/axios.jsx'
+
 
 const FALLBACK = [
   'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80',
@@ -14,14 +14,17 @@ export default function Home() {
   const [current, setCurrent] = useState(0)
   const navigate = useNavigate()
 
-    useEffect(() => {
-      api.get('/inmuebles/').then(({ data }) => {
+  useEffect(() => {
+    fetch('http://127.0.0.1:8000/api/inmuebles/')
+      .then(r => r.json())
+      .then(data => {
         const urls = data
           .filter(i => i.fotos)
-          .map(i => `http://127.0.0.1:8000/${i.fotos}`)
+          .map(i =>  i.fotos)
         if (urls.length > 0) setFotos(urls)
-      }).catch(() => {})
-    }, [])
+      })
+      .catch(() => {})
+  }, [])
   const prev = () => setCurrent((c) => (c - 1 + fotos.length) % fotos.length)
   const next = () => setCurrent((c) => (c + 1) % fotos.length)
 

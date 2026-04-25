@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../api/axios.jsx'
 import useAuthStore from '../store/authStore.jsx'
+import axios from 'axios'
 
 export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
@@ -9,20 +10,32 @@ export default function Login() {
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => { 
-    e.preventDefault()
-    setError('')
-    try {
-      const { data } = await api.post('/auth/login/', form)
-      const me = await api.get('/usuarios/me/', {
-        headers: { Authorization: `Bearer ${data.access}` }
-      })
-      setAuth(data.access, me.data)
-      navigate('/')
-    } catch {
-      setError('Usuario o contraseña incorrectos')
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault()
+  setError('')
+  try {
+    // 1. Login
+    const { data } = await api.post('/auth/login/', form)
+    const token = data.access
+
+    // 2. Guarda el token ANTES de llamar a /me/
+    localStorage.setItem('token', token)
+
+    // 3. Llama a /me/ con axios puro (sin interceptor)
+    const me = await axios.get('http://127.0.0.1:8000/api/usuarios/me/', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    // 4. Guarda en el store
+    setAuth(token, me.data)
+    navigate('/')
+
+  } catch (err) {
+    console.error(err)
+    localStorage.removeItem('token')
+    setError('Usuario o contraseña incorrectos')
   }
+}
 
   return (
     <div style={styles.page}>
