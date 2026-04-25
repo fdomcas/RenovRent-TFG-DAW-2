@@ -21,7 +21,7 @@ class InmueblesAdmin(admin.ModelAdmin):
 
 @admin.register(Caracteristicas_Inmuebles)
 class CaracteristicasAdmin(admin.ModelAdmin):
-    list_display = ['id_inmueble', 'num_habitaciones', 'num_wc', 'm2']
+    list_display = ['id_inmueble','num_habitaciones','num_banos','metros_cuadrados','planta','garaje','piscina','ascensor','terraza']
 
 # ── INVERSIONES ───────────────────────────────────────────
 @admin.register(Inversiones)

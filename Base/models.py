@@ -182,12 +182,16 @@ class Inmuebles(models.Model):
 
 
 class Caracteristicas_Inmuebles(models.Model):
-    id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
-    num_habitaciones = models.IntegerField()
-    num_wc= models.IntegerField()
-    m2 = models.IntegerField()
-    espacios = models.TextField()
-    extras = models.TextField()
+    id_inmueble = models.OneToOneField(Inmuebles, on_delete=models.CASCADE)
+    num_habitaciones = models.IntegerField(null=True, blank=True)
+    num_banos = models.IntegerField(null=True, blank=True)
+    metros_cuadrados = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    planta = models.IntegerField(null=True, blank=True)
+    garaje = models.BooleanField(default=False)
+    piscina = models.BooleanField(default=False)
+    ascensor = models.BooleanField(default=False)
+    terraza = models.BooleanField(default=False)
+    extras = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return str(self.num_habitaciones)
