@@ -1,12 +1,16 @@
+// api/axios.jsx
 import axios from 'axios'
+import useAuthStore from '../store/authStore'
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: 'http://localhost:8000/api',
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  const token = useAuthStore.getState().token  // getState() fuera de componentes
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
   return config
 })
 

@@ -14,25 +14,18 @@ const handleSubmit = async (e) => {
   e.preventDefault()
   setError('')
   try {
-    // 1. Login
     const { data } = await api.post('/auth/login/', form)
     const token = data.access
 
-    // 2. Guarda el token ANTES de llamar a /me/
-    localStorage.setItem('token', token)
-
-    // 3. Llama a /me/ con axios puro (sin interceptor)
     const me = await axios.get('http://127.0.0.1:8000/api/usuarios/me/', {
       headers: { Authorization: `Bearer ${token}` }
     })
 
-    // 4. Guarda en el store
-    setAuth(token, me.data)
-    navigate('/')
+    setAuth(me.data, token)
+    setTimeout(() => navigate('/'), 100)
 
   } catch (err) {
     console.error(err)
-    localStorage.removeItem('token')
     setError('Usuario o contraseña incorrectos')
   }
 }
