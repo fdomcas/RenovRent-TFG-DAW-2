@@ -1,12 +1,12 @@
 from luhncheck import is_luhn
 from rest_framework import serializers
-from .models import Usuario,Tarjeta,Propuestas,Inmuebles,Caracteristicas_Inmuebles,Inversiones,Chat,Mensaje
+from .models import Usuario,Tarjeta,Propuestas,Inmuebles,Inversiones,Chat,Mensaje
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['id','username','nombre','apellidos','Nikname','email']
+        fields = ['id','username','nombre','apellidos','Nikname','email','is_staff']
 
 
 class RegistroSerializer(serializers.ModelSerializer):
@@ -21,18 +21,7 @@ class RegistroSerializer(serializers.ModelSerializer):
         return Usuario.objects.create_user(**validated_data)
 
 
-
-class CaracteristicasSerializer(serializers.ModelSerializer):
-    class Meta:
-        model= Caracteristicas_Inmuebles
-        fields = '__all__'
-
 class inmuebleSerializer(serializers.ModelSerializer):
-    caracteristicas= CaracteristicasSerializer(
-        source='caracteristicas_Inmuebles',
-        many=True,
-        read_only=True
-    )
     class Meta:
         model= Inmuebles
         fields = '__all__'

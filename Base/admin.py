@@ -1,8 +1,7 @@
 # Base/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import Usuario, Tarjeta, Dinero, Propuestas, Inmuebles, \
-                    Caracteristicas_Inmuebles, Inversiones, Chat, Mensaje
+from .models import Usuario, Tarjeta, Dinero, Propuestas, Inmuebles, Inversiones, Chat, Mensaje
 
 # ── USUARIO ──────────────────────────────────────────────
 @admin.register(Usuario)
@@ -18,10 +17,6 @@ class InmueblesAdmin(admin.ModelAdmin):
     list_display = ['nombre', 'tipo', 'ubicacion', 'precio', 'retorno_anual_porcentaje']
     list_filter = ['tipo']
     search_fields = ['nombre', 'ubicacion']
-
-@admin.register(Caracteristicas_Inmuebles)
-class CaracteristicasAdmin(admin.ModelAdmin):
-    list_display = ['id_inmueble','num_habitaciones','num_banos','metros_cuadrados','planta','garaje','piscina','ascensor','terraza']
 
 # ── INVERSIONES ───────────────────────────────────────────
 @admin.register(Inversiones)

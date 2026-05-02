@@ -1,10 +1,13 @@
-from django.db.models import Sum
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from django.core.exceptions import PermissionDenied, ValidationError
 from .models import *
 from .serializers import *
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .models import Inmuebles
+
 # Create your views here.
 
 
@@ -28,11 +31,15 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     def me(self,request):
         return Response(UsuarioSerializer(request.user).data)
 
-
-class InmuebleViewSet(viewsets.ReadOnlyModelViewSet):
+class InmuebleViewSet(viewsets.ModelViewSet):
     queryset = Inmuebles.objects.all()
     serializer_class = inmuebleSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'create', 'destroy']:
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
+
 
 class PropuestaViewSet(viewsets.ModelViewSet):
     serializer_class = PropuestasSerializer
@@ -70,6 +77,15 @@ class InversionesViewSet(viewsets.ModelViewSet):
             retorno_mensual=round(retorno_mensual, 2),
         )
 
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'create', 'destroy']:
+            return [permissions.IsAdminUser()]
+        return [permissions.AllowAny()]
+
+
+
+
+
 
 class MesajeViewSet(viewsets.ModelViewSet):
     serializer_class = MensajeSerializer
@@ -103,3 +119,11 @@ class TarjetaViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         tarjeta = serializer.save()
         tarjeta.id_usuario.add(self.request.user)
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def tipos_inmueble(request):
+    tipos = [{'value': k, 'label': v} for k, v in Inmuebles.TIPOS_CHOICES]
+    return Response(tipos)

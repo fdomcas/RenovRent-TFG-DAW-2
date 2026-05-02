@@ -1,7 +1,7 @@
 # signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Usuario, Perfil, Tarjeta, Dinero, Inmuebles, Caracteristicas_Inmuebles
+from .models import Usuario, Perfil, Tarjeta, Dinero, Inmuebles
 
 
 @receiver(post_save, sender=Usuario)
@@ -18,7 +18,3 @@ def crear_dinero(sender, instance, created, **kwargs):
 
 
 
-@receiver(post_save, sender=Inmuebles)
-def crear_caracteristicas(sender, instance, created, **kwargs):
-    if created:
-            Caracteristicas_Inmuebles.objects.get_or_create(id_inmuebles=instance)
