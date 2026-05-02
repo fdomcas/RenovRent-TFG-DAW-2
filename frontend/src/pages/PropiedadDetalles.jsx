@@ -197,7 +197,9 @@ export default function PropiedadDetalle() {
 
             <div style={s.panelChat}>
               <p style={s.chatAviso}>🔒 Solo inversores de este inmueble pueden ver el chat</p>
-              <button style={s.btnChat}>🔒 Acceder al chat</button>
+              <button style={s.btnChat} onClick={() => navigate(`/chat/${id}`)}>
+              💬 Acceder al chat
+              </button>
             </div>
           </div>
         </div>

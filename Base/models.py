@@ -197,7 +197,6 @@ class Inversiones(models.Model):
     retorno_anual = models.IntegerField()
 
 class Chat(models.Model):
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
 
 

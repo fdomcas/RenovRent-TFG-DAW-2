@@ -4,6 +4,7 @@ import Registro from "./pages/registro.jsx";
 import Home from "./pages/Home.jsx";
 import Propiedades from "./pages/Propiedades.jsx";
 import PropiedadDetalle from "./pages/PropiedadDetalles.jsx";
+import Chat from "./pages/Chat.jsx";
 
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/registro" element={<Registro />} />
         <Route path="/propiedades" element={<Propiedades />} />
         <Route path="/propiedades/:id" element={<PropiedadDetalle />} />
+        <Route path="/chat/:id" element={<Chat />} />
     </Routes>
   )
 }

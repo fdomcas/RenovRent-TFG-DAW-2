@@ -77,12 +77,6 @@ class InversionesViewSet(viewsets.ModelViewSet):
             retorno_mensual=round(retorno_mensual, 2),
         )
 
-    def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'create', 'destroy']:
-            return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
-
-
 
 
 

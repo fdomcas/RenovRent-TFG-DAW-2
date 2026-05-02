@@ -43,7 +43,7 @@ class DineroAdmin(admin.ModelAdmin):
 # ── CHAT ──────────────────────────────────────────────────
 @admin.register(Chat)
 class ChatAdmin(admin.ModelAdmin):
-    list_display = ['id_usuario', 'id_inmueble']
+    list_display = ['id_inmueble']
 
 @admin.register(Mensaje)
 class MensajeAdmin(admin.ModelAdmin):
