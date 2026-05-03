@@ -7,6 +7,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from .models import Inmuebles
+from rest_framework.permissions import IsAdminUser
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 
@@ -121,3 +123,22 @@ class TarjetaViewSet(viewsets.ModelViewSet):
 def tipos_inmueble(request):
     tipos = [{'value': k, 'label': v} for k, v in Inmuebles.TIPOS_CHOICES]
     return Response(tipos)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def todas_propuestas(request):
+    propuestas = Propuestas.objects.all().order_by('-id')
+    serializer = PropuestasSerializer(propuestas, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@api_view(['PATCH'])
+@permission_classes([IsAdminUser])
+def cambiar_estado(request, pk):
+    print("DATA:", request.data)
+    propuesta = get_object_or_404(Propuestas, pk=pk)
+    estado = request.data.get('estado')
+    if estado not in ['Aceptada', 'Revision', 'Denegada']:
+        return Response({'error': 'Estado inválido'}, status=400)
+    propuesta.estado = estado
+    propuesta.save()
+    return Response({'estado': propuesta.estado})

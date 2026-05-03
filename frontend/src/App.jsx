@@ -5,6 +5,7 @@ import Home from "./pages/Home.jsx";
 import Propiedades from "./pages/Propiedades.jsx";
 import PropiedadDetalle from "./pages/PropiedadDetalles.jsx";
 import Chat from "./pages/Chat.jsx";
+import Recomendaciones from "./pages/Recomendaciones.jsx";
 
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/propiedades" element={<Propiedades />} />
         <Route path="/propiedades/:id" element={<PropiedadDetalle />} />
         <Route path="/chat/:id" element={<Chat />} />
+        <Route path="/recomendaciones" element={<Recomendaciones />} />
     </Routes>
   )
 }

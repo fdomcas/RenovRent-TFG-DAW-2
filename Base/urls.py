@@ -13,6 +13,8 @@ router.register(r'tarjetas', views.TarjetaViewSet, basename='tarjetas')
 
 urlpatterns = [
     path('api/inmuebles/tipos/', views.tipos_inmueble),
+    path('api/admin/propuestas/todas/', views.todas_propuestas),
+    path('api/admin/propuestas/<int:pk>/estado/', views.cambiar_estado),
     path('api/', include(router.urls)),
     path('api/auth/login/', TokenObtainPairView.as_view(), name='login'),
     path('api/auth/refresh/', TokenRefreshView.as_view(), name='refresh'),
