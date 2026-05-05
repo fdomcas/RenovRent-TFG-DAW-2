@@ -4,9 +4,7 @@ djangorestframework-simplejwt
 djangorestframework-stubs
 channels-redis
 channels
-WebSocket
 luhncheck
-react-router-dom
-axios
-zustand
 django-cors-headers
+pyotp
+qrcode[pil]

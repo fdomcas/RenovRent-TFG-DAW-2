@@ -7,63 +7,127 @@ import axios from 'axios'
 export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
   const [error, setError] = useState('')
+  const [step, setStep] = useState('login') // 'login' | '2fa'
+  const [tempToken, setTempToken] = useState('')
+  const [codigo, setCodigo] = useState('')
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
 
-const handleSubmit = async (e) => {
-  e.preventDefault()
-  setError('')
-  try {
-    const { data } = await api.post('/auth/login/', form)
-    const token = data.access
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    try {
+      const { data } = await api.post('/auth/login/', form)
 
-    const me = await axios.get('http://127.0.0.1:8000/api/usuarios/me/', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+      if (data.two_factor_required) {
+        setTempToken(data.temp_token)
+        setStep('2fa')
+        return
+      }
 
-    setAuth(me.data, token)
-    setTimeout(() => navigate('/'), 100)
+      const me = await axios.get('http://127.0.0.1:8000/api/usuarios/me/', {
+        headers: { Authorization: `Bearer ${data.access}` }
+      })
+      setAuth(me.data, data.access)
+      setTimeout(() => navigate('/'), 100)
 
-  } catch (err) {
-    console.error(err)
-    setError('Usuario o contraseña incorrectos')
+    } catch (err) {
+      console.error(err)
+      setError('Usuario o contraseña incorrectos')
+    }
   }
-}
+
+  const handle2FA = async (e) => {
+    e.preventDefault()
+    setError('')
+    try {
+      const { data } = await api.post('/auth/login/2fa/', {
+        temp_token: tempToken,
+        codigo,
+      })
+
+      const me = await axios.get('http://127.0.0.1:8000/api/usuarios/me/', {
+        headers: { Authorization: `Bearer ${data.access}` }
+      })
+      setAuth(me.data, data.access)
+      setTimeout(() => navigate('/'), 100)
+
+    } catch (err) {
+      setError(err.response?.data?.error || 'Código incorrecto')
+    }
+  }
 
   return (
     <div style={styles.page}>
       <div style={styles.overlay} />
       <div style={styles.card}>
         <div style={styles.logo}>🏠 RenovRent</div>
-        <h2 style={styles.title}>Iniciar sesión</h2>
-        {error && <p style={styles.error}>{error}</p>}
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Usuario o Email</label>
-            <input
-              style={styles.input}
-              placeholder="Tu usuario o email"
-              value={form.username}
-              onChange={e => setForm({ ...form, username: e.target.value })}
-              required
-            />
-          </div>
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Contraseña</label>
-            <input
-              style={styles.input}
-              type="password"
-              placeholder="Tu contraseña"
-              value={form.password}
-              onChange={e => setForm({ ...form, password: e.target.value })}
-              required
-            />
-          </div>
-          <button style={styles.btn} type="submit">Iniciar sesión</button>
-        </form>
-        <p style={styles.link}>
-          ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
-        </p>
+
+        {step === 'login' ? (
+          <>
+            <h2 style={styles.title}>Iniciar sesión</h2>
+            {error && <p style={styles.error}>{error}</p>}
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Usuario o Email</label>
+                <input
+                  style={styles.input}
+                  placeholder="Tu usuario o email"
+                  value={form.username}
+                  onChange={e => setForm({ ...form, username: e.target.value })}
+                  required
+                />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Contraseña</label>
+                <input
+                  style={styles.input}
+                  type="password"
+                  placeholder="Tu contraseña"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+              </div>
+              <button style={styles.btn} type="submit">Iniciar sesión</button>
+            </form>
+            <p style={styles.link}>
+              ¿No tienes cuenta? <Link to="/registro">Regístrate aquí</Link>
+            </p>
+          </>
+        ) : (
+          <>
+            <h2 style={styles.title}>Verificación en dos pasos</h2>
+            <p style={{ textAlign: 'center', color: '#666', fontSize: '0.9rem', marginBottom: '1rem' }}>
+              Introduce el código de <strong>Google Authenticator</strong>
+            </p>
+            {error && <p style={styles.error}>{error}</p>}
+            <form onSubmit={handle2FA} style={styles.form}>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Código de 6 dígitos</label>
+                <input
+                  style={{ ...styles.input, textAlign: 'center', fontSize: '1.5rem', letterSpacing: '0.4rem' }}
+                  placeholder="123456"
+                  maxLength={6}
+                  inputMode="numeric"
+                  value={codigo}
+                  onChange={e => setCodigo(e.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <button style={styles.btn} type="submit">Verificar</button>
+            </form>
+            <p style={styles.link}>
+              <span
+                style={{ cursor: 'pointer', color: '#F97316' }}
+                onClick={() => { setStep('login'); setError(''); setCodigo('') }}
+              >
+                ← Volver al login
+              </span>
+            </p>
+          </>
+        )}
       </div>
     </div>
   )

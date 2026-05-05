@@ -30,6 +30,15 @@ class Usuario(AbstractUser):
 
 class Perfil(models.Model):
     id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    foto = models.FileField(upload_to='fotos/perfil/', blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    iban = models.CharField(max_length=34, blank=True)
+    notif_email = models.BooleanField(default=True)
+    notif_telefono = models.BooleanField(default=False)
+    verificado = models.BooleanField(default=False)
+    otp_secret = models.CharField(max_length=32, blank=True, null=True)
+    otp_activo = models.BooleanField(default=False)
 
 class Tarjeta(models.Model):
     id_usuario = models.ManyToManyField(Usuario)
@@ -47,9 +56,9 @@ class Tarjeta(models.Model):
         try:
             mes, anio = self.fecha_caducidad.split('/')
             fecha = date(int(anio), int(mes), 1)
-            self.Estado = fecha >= date.today().replace(day=1)
+            self.estado = fecha >= date.today().replace(day=1)
         except:
-            self.Estado = False
+            self.estado = False
         super().save(*args, **kwargs)
 
 

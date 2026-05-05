@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../api/axios.jsx'
 import Navbar from '../componentes/Navbar.jsx'
 import useAuthStore from '../store/authStore.jsx'
+import ModalInversion from '../componentes/Inversion.jsx'
 
 const FALLBACK = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80'
 
@@ -20,11 +21,6 @@ export default function PropiedadDetalle() {
   const [guardando, setGuardando] = useState(false)
   const [msgEdit, setMsgEdit] = useState('')
   const [tipos, setTipos] = useState([])
-
-  const [cantidad, setCantidad] = useState('')
-  const [tarjeta, setTarjeta] = useState('')
-  const [msg, setMsg] = useState({ tipo: '', texto: '' })
-  const [invirtiendo, setInvirtiendo] = useState(false)
   const [mostrarInvertir, setMostrarInvertir] = useState(false)
 
   const cargar = () => {
@@ -88,28 +84,6 @@ export default function PropiedadDetalle() {
     }
   }
 
-  const handleInvertir = async (e) => {
-    e.preventDefault()
-    setMsg({ tipo: '', texto: '' })
-    setInvirtiendo(true)
-    try {
-      await api.post('/inversiones/', {
-        id_inmueble: id,
-        cantidad: parseFloat(cantidad),
-        numerotarjeta: tarjeta
-      })
-      setMsg({ tipo: 'ok', texto: '✅ Inversión realizada con éxito.' })
-      setCantidad('')
-      setTarjeta('')
-    } catch (err) {
-      const data = err.response?.data
-      const texto = data?.detail || data?.cantidad?.[0] || '❌ Error al procesar la inversión.'
-      setMsg({ tipo: 'err', texto })
-    } finally {
-      setInvirtiendo(false)
-    }
-  }
-
   if (loading) return <div style={s.center}>Cargando...</div>
   if (!inmueble) return null
 
@@ -118,9 +92,6 @@ export default function PropiedadDetalle() {
     : inmueble.fotos ? [inmueble.fotos] : [FALLBACK]
 
   const porcentaje = parseFloat(inmueble.retorno_anual_porcentaje ?? 0)
-  const cantNum = parseFloat(cantidad)
-  const retornoAnual = cantidad && !isNaN(cantNum) ? ((cantNum * porcentaje) / 100).toFixed(2) : null
-  const retornoMensual = retornoAnual ? (retornoAnual / 12).toFixed(2) : null
 
   const extras = [
     inmueble.garaje   && 'Garaje',
@@ -198,53 +169,18 @@ export default function PropiedadDetalle() {
             <div style={s.panelChat}>
               <p style={s.chatAviso}>🔒 Solo inversores de este inmueble pueden ver el chat</p>
               <button style={s.btnChat} onClick={() => navigate(`/chat/${id}`)}>
-              💬 Acceder al chat
+                💬 Acceder al chat
               </button>
             </div>
           </div>
         </div>
 
-        {/* MODAL INVERTIR */}
+        {/* MODAL INVERTIR — nuevo */}
         {mostrarInvertir && (
-          <div style={s.modalOverlay} onClick={() => setMostrarInvertir(false)}>
-            <div style={s.modal} onClick={e => e.stopPropagation()}>
-              <h2 style={{ ...s.h2, marginBottom: '1.2rem' }}>💰 Invertir en {inmueble.nombre}</h2>
-              <form onSubmit={handleInvertir} style={s.form}>
-                <label style={s.label}>Cantidad a invertir (€)</label>
-                <input
-                  type="number" min="1" value={cantidad}
-                  onChange={e => setCantidad(e.target.value)}
-                  placeholder="Ej: 5000" style={s.input} required
-                />
-                {retornoAnual && (
-                  <div style={s.simulacion}>
-                    <p style={s.simTitulo}>📈 Retorno estimado</p>
-                    <div style={s.simFila}><span>Anual</span><strong style={{ color: '#16a34a' }}>+{Number(retornoAnual).toLocaleString('es-ES')} €</strong></div>
-                    <div style={s.simFila}><span>Mensual</span><strong style={{ color: '#16a34a' }}>+{Number(retornoMensual).toLocaleString('es-ES')} €</strong></div>
-                  </div>
-                )}
-                <label style={s.label}>Número de tarjeta</label>
-                <input
-                  type="text" maxLength={16} value={tarjeta}
-                  onChange={e => setTarjeta(e.target.value.replace(/\D/g, ''))}
-                  placeholder="1234567890123456" style={s.input} required
-                />
-                {msg.texto && (
-                  <p style={{ ...s.msgBox, background: msg.tipo === 'ok' ? '#dcfce7' : '#fee2e2', color: msg.tipo === 'ok' ? '#166534' : '#991b1b' }}>
-                    {msg.texto}
-                  </p>
-                )}
-                <div style={{ display: 'flex', gap: '0.8rem' }}>
-                  <button type="submit" style={s.btnNaranja} disabled={invirtiendo}>
-                    {invirtiendo ? 'Procesando...' : 'Confirmar inversión'}
-                  </button>
-                  <button type="button" style={s.btnGris} onClick={() => setMostrarInvertir(false)}>
-                    Cancelar
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <ModalInversion
+            inmueble={inmueble}
+            onClose={() => setMostrarInvertir(false)}
+          />
         )}
 
         {/* MODAL EDICIÓN */}
@@ -375,9 +311,6 @@ const s = {
   form:          { display: 'flex', flexDirection: 'column', gap: '0.8rem' },
   label:         { fontSize: '0.82rem', fontWeight: '600', color: '#555' },
   input:         { padding: '0.65rem 0.9rem', borderRadius: '8px', border: '1px solid #e0e0e0', fontSize: '0.95rem', outline: 'none', width: '100%' },
-  simulacion:    { background: '#f0fdf4', borderRadius: '10px', padding: '0.9rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', border: '1px solid #bbf7d0' },
-  simTitulo:     { fontSize: '0.82rem', fontWeight: '700', color: '#166534', marginBottom: '0.3rem' },
-  simFila:       { display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#444' },
   msgBox:        { borderRadius: '8px', padding: '0.7rem 1rem', fontSize: '0.88rem' },
   btnNaranja:    { flex: 1, padding: '0.8rem', background: '#F97316', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' },
   btnGris:       { flex: 1, padding: '0.8rem', background: '#f3f4f6', color: '#444', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer' },
