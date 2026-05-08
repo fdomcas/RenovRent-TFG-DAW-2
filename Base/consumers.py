@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Mensaje, Chat, Inmuebles, Usuario, Inversiones
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
@@ -15,20 +16,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.close(code=4003)
             return
 
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
-        # Enviar historial al conectarse
         historial = await self.get_historial()
         await self.send(text_data=json.dumps({
             'type': 'historial',
             'mensajes': historial
         }))
 
-        # Enviar lista de participantes a todos
         participantes = await self.get_participantes()
         await self.channel_layer.group_send(self.room_group_name, {
             'type': 'participantes_update',
@@ -36,19 +32,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         })
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data=None, bytes_data=None):
         data = json.loads(text_data)
         tipo = data.get('type')
 
-        # Banear usuario (solo admin/staff)
         if tipo == 'ban' and (self.user.is_staff or self.user.is_superuser):
             usuario_id = data.get('usuario_id')
             await self.banear_usuario(usuario_id)
+            await self.channel_layer.group_send(self.room_group_name, {
+                'type': 'usuario_baneado',
+                'usuario_id': usuario_id
+            })
             participantes = await self.get_participantes()
             await self.channel_layer.group_send(self.room_group_name, {
                 'type': 'participantes_update',
@@ -56,7 +52,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             })
             return
 
-        # Enviar mensaje
         if tipo == 'mensaje':
             texto = data.get('texto', '').strip()
             if not texto:
@@ -84,6 +79,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'type': 'participantes',
             'participantes': event['participantes']
+        }))
+
+    async def usuario_baneado(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'baneado',
+            'usuario_id': event['usuario_id']
         }))
 
     # ── Helpers sync ─────────────────────────────────────────────
@@ -121,22 +122,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def get_participantes(self):
-        inversiones = Inversiones.objects.filter(
-            id_inmueble=self.inmueble_id
-        ).select_related('id_usuario')
+        usuarios_ids = (
+            Inversiones.objects
+            .filter(id_inmueble=self.inmueble_id)
+            .values_list('id_usuario', flat=True)
+            .distinct()
+        )
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        usuarios = User.objects.filter(id__in=usuarios_ids)
         return [
             {
-                'id': inv.id_usuario.id,
-                'nick': inv.id_usuario.Nikname,
-                'baneado': False,  # ajusta si tienes campo de ban
+                'id': u.id,
+                'nick': u.Nikname,
+                'baneado': not u.is_active,
             }
-            for inv in inversiones
+            for u in usuarios
         ]
 
     @database_sync_to_async
     def banear_usuario(self, usuario_id):
-        # Implementa según tu modelo de ban
-        pass
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        User.objects.filter(id=usuario_id).update(is_active=False)
 
     @database_sync_to_async
     def get_fecha_ahora(self):

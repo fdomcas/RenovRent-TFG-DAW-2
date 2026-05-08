@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from .models import *
 from .serializers import *
 import pyotp, qrcode, io, base64
+import uuid
 
 
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -59,23 +60,31 @@ class InversionesViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Inversiones.objects.filter(id_usuario=self.request.user)
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         inmueble = serializer.validated_data.get('id_inmueble')
         cantidad = serializer.validated_data.get('cantidad')
 
         if cantidad > inmueble.disponible_para_invertir:
             raise ValidationError(
-                f"Solo quedan {inmueble.disponible_para_invertir}€ disponibles para invertir."
+                f"Solo quedan {inmueble.disponible_para_invertir}€ disponibles."
             )
 
-        retorno_anual = cantidad * inmueble.retorno_anual_porcentaje / 100
-        retorno_mensual = retorno_anual / 12
+        retorno_anual = round(cantidad * inmueble.retorno_anual_porcentaje / 100, 2)
+        retorno_mensual = round(retorno_anual / 12, 2)
 
-        serializer.save(
-            id_usuario=self.request.user,
-            retorno_anual=round(retorno_anual, 2),
-            retorno_mensual=round(retorno_mensual, 2),
+        inversion = serializer.save(
+            id_usuario=request.user,
+            retorno_anual=retorno_anual,
+            retorno_mensual=retorno_mensual,
         )
+
+        return Response({
+            **serializer.data,
+            'numero_transaccion': f'INV-{inversion.id:06d}'
+        }, status=201)
 
 
 class MesajeViewSet(viewsets.ModelViewSet):

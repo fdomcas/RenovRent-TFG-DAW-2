@@ -1,5 +1,5 @@
-// src/pages/Perfil.jsx
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../api/axios.jsx'
 import Navbar from '../componentes/Navbar.jsx'
 import useAuthStore from '../store/authStore.jsx'
@@ -7,6 +7,7 @@ import Seguridad2FA from '../componentes/Seguridad2FA.jsx'
 
 export default function Perfil() {
   const { user, setUser } = useAuthStore()
+  const navigate = useNavigate()
   const [perfil, setPerfil] = useState(null)
   const [loading, setLoading] = useState(true)
   const [seccion, setSeccion] = useState(null)
@@ -16,7 +17,13 @@ export default function Perfil() {
   const [tarjetaForm, setTarjetaForm] = useState({ numero_tarjeta: '', fecha_caducidad: '', nombre_titular: '' })
   const [msg, setMsg] = useState({ tipo: '', texto: '' })
   const [guardando, setGuardando] = useState(false)
+  const [inversiones, setInversiones] = useState([])
+  const [inversionesCargando, setInversionesCargando] = useState(true)
   const fotoRef = useRef()
+
+  const totalInvertido = inversiones.reduce((s, i) => s + Number(i.cantidad), 0)
+  const totalMensual   = inversiones.reduce((s, i) => s + Number(i.retorno_mensual), 0)
+  const totalAnual     = inversiones.reduce((s, i) => s + Number(i.retorno_anual), 0)
 
   const cargar = () => {
     api.get('/perfil/').then(r => {
@@ -29,7 +36,11 @@ export default function Perfil() {
     api.get('/tarjetas/').then(r => setTarjetas(r.data))
   }
 
-  useEffect(() => { cargar(); cargarTarjetas() }, [])
+  useEffect(() => {
+    cargar()
+    cargarTarjetas()
+    api.get('/inversiones/').then(r => setInversiones(r.data)).finally(() => setInversionesCargando(false))
+  }, [])
 
   const mostrarMsg = (tipo, texto) => {
     setMsg({ tipo, texto })
@@ -47,9 +58,9 @@ export default function Perfil() {
       await api.patch('/perfil/', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       cargar()
       setSeccion(null)
-      mostrarMsg('ok', '✅ Perfil actualizado correctamente')
+      mostrarMsg('ok', 'Perfil actualizado correctamente')
     } catch {
-      mostrarMsg('err', '❌ Error al guardar los cambios')
+      mostrarMsg('err', 'Error al guardar los cambios')
     } finally {
       setGuardando(false)
     }
@@ -63,7 +74,7 @@ export default function Perfil() {
       await api.post('/perfil/cambiar-password/', { actual: passForm.actual, nueva: passForm.nueva })
       setPassForm({ actual: '', nueva: '', confirmar: '' })
       setSeccion(null)
-      mostrarMsg('ok', '✅ Contraseña cambiada correctamente')
+      mostrarMsg('ok', 'Contraseña cambiada correctamente')
     } catch (err) {
       mostrarMsg('err', err.response?.data?.error || '❌ Error al cambiar la contraseña')
     } finally {
@@ -79,9 +90,9 @@ export default function Perfil() {
       setTarjetaForm({ numero_tarjeta: '', fecha_caducidad: '', nombre_titular: '' })
       setSeccion(null)
       cargarTarjetas()
-      mostrarMsg('ok', '✅ Tarjeta añadida correctamente')
+      mostrarMsg('ok', 'Tarjeta añadida correctamente')
     } catch {
-      mostrarMsg('err', '❌ Error al añadir la tarjeta')
+      mostrarMsg('err', 'Error al añadir la tarjeta')
     } finally {
       setGuardando(false)
     }
@@ -92,7 +103,7 @@ export default function Perfil() {
     try {
       await api.delete(`/tarjetas/${id}/`)
       cargarTarjetas()
-      mostrarMsg('ok', '✅ Tarjeta eliminada')
+      mostrarMsg('ok', 'Tarjeta eliminada')
     } catch {
       mostrarMsg('err', '❌ Error al eliminar la tarjeta')
     }
@@ -101,6 +112,13 @@ export default function Perfil() {
   const maskTarjeta = (num) => {
     const limpio = num.replace(/\s/g, '')
     return '**** **** **** ' + limpio.slice(-4)
+  }
+
+  const formatFecha = (raw) => {
+    if (!raw) return '—'
+    const d = new Date(raw)
+    if (isNaN(d)) return '—'
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
   }
 
   if (loading) return <div style={s.page}><Navbar /><p style={s.cargando}>Cargando perfil...</p></div>
@@ -116,7 +134,6 @@ export default function Perfil() {
           </div>
         )}
 
-        {/* HEADER PERFIL */}
         <div style={s.headerCard}>
           <div style={s.fotoWrap}>
             <div style={s.fotoCirculo}>
@@ -125,7 +142,7 @@ export default function Perfil() {
                 : <span style={s.fotoIniciales}>{perfil.nombre?.[0]}{perfil.apellidos?.[0]}</span>
               }
             </div>
-            <button style={s.fotoBtn} onClick={() => { setSeccion('foto') }}>📷</button>
+            <button style={s.fotoBtn} onClick={() => setSeccion('foto')}>📷</button>
           </div>
           <div style={s.headerInfo}>
             <h1 style={s.nombre}>{perfil.nombre} {perfil.apellidos}</h1>
@@ -141,10 +158,8 @@ export default function Perfil() {
           )}
         </div>
 
-        {/* GRID SECCIONES */}
         <div style={s.grid}>
 
-          {/* INFO PERSONAL */}
           <div style={s.card}>
             <div style={s.cardHeader}>
               <span style={s.cardIcon}>👤</span>
@@ -200,47 +215,38 @@ export default function Perfil() {
             )}
           </div>
 
-{/* CONTRASEÑA + 2FA */}
-<div style={s.card}>
+          <div style={s.card}>
+            <div style={s.cardHeader}>
+              <span style={s.cardIcon}>🔒</span>
+              <h2 style={s.cardTitulo}>Contraseña</h2>
+            </div>
+            {seccion === 'pass' ? (
+              <form onSubmit={cambiarPassword} style={s.form}>
+                <label style={s.label}>Contraseña actual</label>
+                <input style={s.input} type="password" value={passForm.actual} onChange={e => setPassForm({ ...passForm, actual: e.target.value })} required />
+                <label style={s.label}>Nueva contraseña</label>
+                <input style={s.input} type="password" value={passForm.nueva} onChange={e => setPassForm({ ...passForm, nueva: e.target.value })} required />
+                <label style={s.label}>Confirmar nueva contraseña</label>
+                <input style={s.input} type="password" value={passForm.confirmar} onChange={e => setPassForm({ ...passForm, confirmar: e.target.value })} required />
+                <div style={s.botonesForm}>
+                  <button type="submit" style={s.btnNaranja} disabled={guardando}>{guardando ? 'Guardando...' : 'Cambiar contraseña'}</button>
+                  <button type="button" style={s.btnGris} onClick={() => setSeccion(null)}>Cancelar</button>
+                </div>
+              </form>
+            ) : (
+              <div style={s.infoLista}>
+                <p style={{ color: '#888', fontSize: '0.9rem' }}>••••••••••••</p>
+                <button style={s.btnEditar} onClick={() => setSeccion('pass')}>✏️ Cambiar contraseña</button>
+              </div>
+            )}
+            <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '1.2rem 0' }} />
+            <div style={s.cardHeader}>
+              <span style={s.cardIcon}>🔐</span>
+              <h2 style={s.cardTitulo}>Verificación en dos pasos</h2>
+            </div>
+            <Seguridad2FA otp_activo={perfil.otp_activo} />
+          </div>
 
-  {/* Contraseña */}
-  <div style={s.cardHeader}>
-    <span style={s.cardIcon}>🔒</span>
-    <h2 style={s.cardTitulo}>Contraseña</h2>
-  </div>
-  {seccion === 'pass' ? (
-    <form onSubmit={cambiarPassword} style={s.form}>
-      <label style={s.label}>Contraseña actual</label>
-      <input style={s.input} type="password" value={passForm.actual} onChange={e => setPassForm({ ...passForm, actual: e.target.value })} required />
-      <label style={s.label}>Nueva contraseña</label>
-      <input style={s.input} type="password" value={passForm.nueva} onChange={e => setPassForm({ ...passForm, nueva: e.target.value })} required />
-      <label style={s.label}>Confirmar nueva contraseña</label>
-      <input style={s.input} type="password" value={passForm.confirmar} onChange={e => setPassForm({ ...passForm, confirmar: e.target.value })} required />
-      <div style={s.botonesForm}>
-        <button type="submit" style={s.btnNaranja} disabled={guardando}>{guardando ? 'Guardando...' : 'Cambiar contraseña'}</button>
-        <button type="button" style={s.btnGris} onClick={() => setSeccion(null)}>Cancelar</button>
-      </div>
-    </form>
-  ) : (
-    <div style={s.infoLista}>
-      <p style={{ color: '#888', fontSize: '0.9rem' }}>••••••••••••</p>
-      <button style={s.btnEditar} onClick={() => setSeccion('pass')}>✏️ Cambiar contraseña</button>
-    </div>
-  )}
-
-  {/* Separador */}
-  <hr style={{ border: 'none', borderTop: '1px solid #f3f4f6', margin: '1.2rem 0' }} />
-
-  {/* 2FA */}
-  <div style={s.cardHeader}>
-    <span style={s.cardIcon}>🔐</span>
-    <h2 style={s.cardTitulo}>Verificación en dos pasos</h2>
-  </div>
-  <Seguridad2FA otp_activo={perfil.otp_activo} />
-
-</div>
-
-          {/* BANCO */}
           <div style={s.card}>
             <div style={s.cardHeader}>
               <span style={s.cardIcon}>🏦</span>
@@ -266,7 +272,6 @@ export default function Perfil() {
             )}
           </div>
 
-          {/* NOTIFICACIONES */}
           <div style={s.card}>
             <div style={s.cardHeader}>
               <span style={s.cardIcon}>🔔</span>
@@ -297,7 +302,7 @@ export default function Perfil() {
               </label>
             </div>
           </div>
-          {/* TARJETAS */}
+
           <div style={{ ...s.card, gridColumn: 'span 2' }}>
             <div style={s.cardHeader}>
               <span style={s.cardIcon}>💳</span>
@@ -344,7 +349,79 @@ export default function Perfil() {
             </div>
           </div>
 
-          {/* FOTO — modal inline */}
+          <div style={{ ...s.card, gridColumn: 'span 2' }}>
+            <div style={s.cardHeader}>
+              <span style={s.cardIcon}>📈</span>
+              <h2 style={s.cardTitulo}>Mis inversiones</h2>
+              <span style={{ marginLeft: 'auto', fontSize: '0.82rem', color: '#888' }}>
+                {inversiones.length} inversión{inversiones.length !== 1 ? 'es' : ''}
+              </span>
+            </div>
+            {inversionesCargando ? (
+              <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Cargando...</p>
+            ) : inversiones.length === 0 ? (
+              <p style={{ color: '#aaa', fontSize: '0.9rem' }}>Aún no has realizado ninguna inversión.</p>
+            ) : (
+              <>
+                <div style={s.invResumen}>
+                  <div style={s.invResumenItem}>
+                    <span style={s.invResumenLabel}>Total invertido</span>
+                    <span style={s.invResumenValor}>{totalInvertido.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                  </div>
+                  <div style={s.invResumenItem}>
+                    <span style={s.invResumenLabel}>Retorno mensual</span>
+                    <span style={{ ...s.invResumenValor, color: '#16a34a' }}>{totalMensual.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                  </div>
+                  <div style={s.invResumenItem}>
+                    <span style={s.invResumenLabel}>Retorno anual</span>
+                    <span style={{ ...s.invResumenValor, color: '#16a34a' }}>{totalAnual.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</span>
+                  </div>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={s.invTabla}>
+                    <thead>
+                      <tr>
+                        {['Inmueble', 'Cantidad', 'Retorno mensual', 'Retorno anual', 'Fecha', 'Nº transacción', 'Acciones'].map(h => (
+                          <th key={h} style={s.invTh}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inversiones.map(inv => (
+                        <tr key={inv.id} style={s.invTr}>
+                          <td style={s.invTd}>{inv.id_inmueble_nombre || `Inmueble #${inv.id_inmueble}`}</td>
+                          <td style={s.invTd}>{Number(inv.cantidad).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</td>
+                          <td style={{ ...s.invTd, color: '#16a34a', fontWeight: '600' }}>{Number(inv.retorno_mensual).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</td>
+                          <td style={{ ...s.invTd, color: '#16a34a', fontWeight: '600' }}>{Number(inv.retorno_anual).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</td>
+                          <td style={{ ...s.invTd, color: '#888' }}>{formatFecha(inv.fecha_inversion || inv.created_at)}</td>
+                          <td style={{ ...s.invTd, fontFamily: 'monospace', fontSize: '0.8rem', color: '#aaa' }}>{inv.numero_transaccion || `INV-${String(inv.id).padStart(6, '0')}`}</td>
+                          <td style={s.invTd}>
+                            <div style={s.invAcciones}>
+                              <button
+                                style={s.btnAccionVer}
+                                onClick={() => navigate(`/propiedades/${inv.id_inmueble}`)}
+                                title="Ver vivienda"
+                              >
+                                🏠 Ver
+                              </button>
+                              <button
+                                style={s.btnAccionChat}
+                                onClick={() => navigate(`/chat/${inv.id_inmueble}`)}
+                                title="Ir al chat"
+                              >
+                                💬 Chat
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+
           {seccion === 'foto' && (
             <div style={s.card}>
               <div style={s.cardHeader}>
@@ -406,4 +483,15 @@ const s = {
   tarjetaNumero:   { fontFamily: 'monospace', fontWeight: '700', fontSize: '0.95rem', flex: 1 },
   tarjetaInfo:     { display: 'flex', flexDirection: 'column', fontSize: '0.8rem', color: '#555' },
   tarjetaEliminar: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', opacity: 0.6 },
+  invResumen:      { display: 'flex', gap: '1.5rem', marginBottom: '1.2rem', flexWrap: 'wrap' },
+  invResumenItem:  { display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: '140px' },
+  invResumenLabel: { fontSize: '0.78rem', color: '#888', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' },
+  invResumenValor: { fontSize: '1.3rem', fontWeight: '800', color: '#1a1a1a' },
+  invTabla:        { width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' },
+  invTh:           { textAlign: 'left', padding: '0.6rem 0.8rem', color: '#888', fontWeight: '600', fontSize: '0.78rem', borderBottom: '2px solid #f3f4f6', whiteSpace: 'nowrap' },
+  invTd:           { padding: '0.7rem 0.8rem', borderBottom: '1px solid #f3f4f6', color: '#1a1a1a', verticalAlign: 'middle' },
+  invTr:           { transition: 'background 0.15s' },
+  invAcciones:     { display: 'flex', gap: '0.4rem' },
+  btnAccionVer:    { padding: '0.3rem 0.7rem', background: '#f3f4f6', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '600', color: '#444', whiteSpace: 'nowrap' },
+  btnAccionChat:   { padding: '0.3rem 0.7rem', background: '#fff7ed', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: '600', color: '#F97316', whiteSpace: 'nowrap' },
 }

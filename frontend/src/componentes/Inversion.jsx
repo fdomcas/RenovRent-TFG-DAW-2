@@ -309,8 +309,8 @@ export default function ModalInversion({ inmueble, onClose }) {
               Tu inversión ha sido procesada exitosamente. Recibirás un correo de confirmación en breve.
             </p>
             <div style={s.transaccionBox}>
-              <span style={{ fontSize: '0.82rem', color: '#888' }}>Número de transacción</span>
-              <code style={s.transaccionNum}>{transaccion}</code>
+                <span style={{ fontSize: '0.82rem', color: '#888' }}>Número de transacción</span>
+                <code style={s.transaccionNum}>{transaccion}</code>
             </div>
             <div style={s.confirmResumen}>
               <div style={s.resumenFila}><span>Inmueble</span><strong>{inmueble.nombre}</strong></div>
