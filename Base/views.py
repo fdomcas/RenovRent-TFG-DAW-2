@@ -120,7 +120,7 @@ class TarjetaViewSet(viewsets.ModelViewSet):
         tarjeta.id_usuario.add(self.request.user)
 
 
-# ─── AUTENTICACIÓN ────────────────────────────────────────────────────────────
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -181,7 +181,7 @@ def login_2fa(request):
     })
 
 
-# ─── 2FA ──────────────────────────────────────────────────────────────────────
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -237,7 +237,7 @@ def desactivar_2fa(request):
     return Response({'ok': True})
 
 
-# ─── PERFIL ───────────────────────────────────────────────────────────────────
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

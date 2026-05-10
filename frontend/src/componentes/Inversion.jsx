@@ -31,7 +31,7 @@ export default function ModalInversion({ inmueble, onClose }) {
     setError('')
     setLoading(true)
     try {
-      // Si eligió nueva tarjeta, la creamos primero
+
       if (metodo === 'tarjeta' && nuevaTarjeta) {
         const res = await api.post('/tarjetas/', {
           ...formTarjeta,
@@ -60,7 +60,7 @@ export default function ModalInversion({ inmueble, onClose }) {
     <div style={s.backdrop} onClick={e => e.target === e.currentTarget && onClose()}>
       <div style={s.modal}>
 
-        {/* HEADER */}
+
         <div style={s.header}>
           <div>
             <h2 style={s.titulo}>Invertir en {inmueble.nombre}</h2>
@@ -69,7 +69,7 @@ export default function ModalInversion({ inmueble, onClose }) {
           <button style={s.cerrar} onClick={onClose}>✕</button>
         </div>
 
-        {/* STEPS INDICATOR */}
+
         {step < 3 && (
           <div style={s.steps}>
             {['Cantidad', 'Pago', 'Confirmación'].map((label, i) => (
@@ -83,7 +83,7 @@ export default function ModalInversion({ inmueble, onClose }) {
           </div>
         )}
 
-        {/* ── STEP 1: CANTIDAD ── */}
+
         {step === 1 && (
           <div style={s.body}>
             <div style={s.grid2}>
@@ -161,7 +161,7 @@ export default function ModalInversion({ inmueble, onClose }) {
           </div>
         )}
 
-        {/* ── STEP 2: PAGO ── */}
+
         {step === 2 && (
           <div style={s.body}>
             <div style={s.grid2}>
@@ -192,7 +192,7 @@ export default function ModalInversion({ inmueble, onClose }) {
                   </button>
                 </div>
 
-                {/* TARJETA */}
+
                 {metodo === 'tarjeta' && (
                   <div style={{ marginTop: '1rem' }}>
                     {tarjetas.length > 0 && !nuevaTarjeta && (
@@ -251,7 +251,7 @@ export default function ModalInversion({ inmueble, onClose }) {
                   </div>
                 )}
 
-                {/* TRANSFERENCIA */}
+
                 {metodo === 'transferencia' && (
                   <div style={{ ...s.ibanBox, marginTop: '1rem' }}>
                     <p style={{ fontSize: '0.88rem', color: '#555', marginBottom: '0.4rem' }}>
@@ -270,7 +270,7 @@ export default function ModalInversion({ inmueble, onClose }) {
                 {error && <p style={s.error}>{error}</p>}
               </div>
 
-              {/* RESUMEN DERECHA */}
+
               <div style={s.resumen}>
                 <h3 style={s.resumenTitulo}>Resumen de tu inversión</h3>
                 <div style={s.resumenFila}>
@@ -300,7 +300,7 @@ export default function ModalInversion({ inmueble, onClose }) {
           </div>
         )}
 
-        {/* ── STEP 3: CONFIRMADO ── */}
+
         {step === 3 && (
           <div style={s.confirmado}>
             <div style={s.checkCircle}>✓</div>

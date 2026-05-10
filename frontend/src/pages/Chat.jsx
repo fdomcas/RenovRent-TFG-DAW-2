@@ -22,12 +22,12 @@ export default function Chat() {
   const wsRef = useRef(null)
   const bottomRef = useRef(null)
 
-  // Cargar datos del inmueble
+
   useEffect(() => {
     api.get(`/inmuebles/${id}/`).then(r => setInmueble(r.data)).catch(() => navigate('/propiedades'))
   }, [id])
 
-  // Conectar WebSocket
+
   useEffect(() => {
     if (!token) return
 
@@ -56,7 +56,7 @@ export default function Chat() {
     return () => ws.close()
   }, [token, id])
 
-  // Scroll al último mensaje
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [mensajes])
@@ -94,7 +94,7 @@ export default function Chat() {
       <Navbar />
       <div style={s.container}>
 
-        {/* CABECERA */}
+
         <div style={s.header}>
           <button style={s.back} onClick={() => navigate(`/propiedades/${id}`)}>← Volver</button>
           <div style={s.headerInfo}>
@@ -107,10 +107,9 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* CUERPO */}
         <div style={s.body}>
 
-          {/* MENSAJES */}
+
           <div style={s.colMensajes}>
             <div style={s.mensajesScroll}>
               {mensajes.length === 0 && (
@@ -131,7 +130,7 @@ export default function Chat() {
               <div ref={bottomRef} />
             </div>
 
-            {/* INPUT */}
+
             <form onSubmit={enviarMensaje} style={s.inputRow}>
               <input
                 style={s.inputMsg}
@@ -146,7 +145,7 @@ export default function Chat() {
             </form>
           </div>
 
-          {/* PARTICIPANTES */}
+
           <div style={s.colParticipantes}>
             <h3 style={s.partTitulo}>Participantes</h3>
             <input

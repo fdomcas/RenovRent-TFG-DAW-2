@@ -104,11 +104,11 @@ export default function Recomendaciones() {
 
         <div style={s.tabs}>
           <button style={{ ...s.tab, ...(tab === 'mis' ? s.tabActive : {}) }} onClick={() => setTab('mis')}>
-            📋 Mis recomendaciones
+            Mis recomendaciones
           </button>
           {isAdmin && (
             <button style={{ ...s.tab, ...(tab === 'admin' ? s.tabActive : {}) }} onClick={() => setTab('admin')}>
-              🛠️ Panel admin
+              Panel admin
             </button>
           )}
         </div>

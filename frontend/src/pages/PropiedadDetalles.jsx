@@ -109,7 +109,7 @@ export default function PropiedadDetalle() {
 
         <div style={s.layout}>
 
-          {/* COLUMNA IZQUIERDA */}
+
           <div style={s.colLeft}>
             <div style={s.heroWrap}>
               <img
@@ -145,7 +145,7 @@ export default function PropiedadDetalle() {
             </button>
           </div>
 
-          {/* COLUMNA DERECHA */}
+
           <div style={s.colRight}>
             <div style={s.panelInfo}>
               <h2 style={s.nombreTitulo}>{inmueble.nombre}</h2>
@@ -175,7 +175,7 @@ export default function PropiedadDetalle() {
           </div>
         </div>
 
-        {/* MODAL INVERTIR — nuevo */}
+
         {mostrarInvertir && (
           <ModalInversion
             inmueble={inmueble}
@@ -183,7 +183,7 @@ export default function PropiedadDetalle() {
           />
         )}
 
-        {/* MODAL EDICIÓN */}
+
         {editando && (
           <div style={s.modalOverlay} onClick={() => setEditando(false)}>
             <div style={s.modal} onClick={e => e.stopPropagation()}>

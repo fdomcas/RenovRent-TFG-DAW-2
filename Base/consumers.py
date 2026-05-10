@@ -87,7 +87,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'usuario_id': event['usuario_id']
         }))
 
-    # ── Helpers sync ─────────────────────────────────────────────
+
 
     @database_sync_to_async
     def verificar_inversion(self):

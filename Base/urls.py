@@ -26,6 +26,5 @@ urlpatterns = [
 
     path('api/perfil/',          views.mi_perfil),
     path('api/perfil/password/', views.cambiar_password),
-    # Router al final
     path('api/', include(router.urls)),
 ]
