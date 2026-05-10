@@ -1,7 +1,8 @@
 # signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Usuario, Perfil, Tarjeta, Dinero
+from .models import Usuario, Perfil, Tarjeta, Dinero, Inmuebles, Chat
+
 
 @receiver(post_save, sender=Usuario)
 def crear_perfil(sender, instance, created, **kwargs):
@@ -13,3 +14,9 @@ def crear_perfil(sender, instance, created, **kwargs):
 def crear_dinero(sender, instance, created, **kwargs):
     if created:
         Dinero.objects.create(id_tarjeta=instance, Dinero=0)
+
+
+@receiver(post_save, sender=Inmuebles)
+def crear_chat_inmueble(sender, instance, created, **kwargs):
+    if created:
+        Chat.objects.get_or_create(id_inmueble=instance)

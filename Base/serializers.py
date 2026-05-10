@@ -1,12 +1,12 @@
 from luhncheck import is_luhn
 from rest_framework import serializers
-from .models import Usuario,Tarjeta,Propuestas,Inmuebles,Caracteristicas_Inmuebles,Inversiones,Chat,Mensaje
+from .models import Usuario, Tarjeta, Propuestas, Inmuebles, Inversiones, Chat, Mensaje, Perfil
 
 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = ['id','username','nombre','apellidos','Nikname','email']
+        fields = ['id','username','nombre','apellidos','Nikname','email','is_staff']
 
 
 class RegistroSerializer(serializers.ModelSerializer):
@@ -21,21 +21,19 @@ class RegistroSerializer(serializers.ModelSerializer):
         return Usuario.objects.create_user(**validated_data)
 
 
-
-class CaracteristicasSerializer(serializers.ModelSerializer):
-    class Meta:
-        model= Caracteristicas_Inmuebles
-        fields = '__all__'
-
 class inmuebleSerializer(serializers.ModelSerializer):
-    caracteristicas= CaracteristicasSerializer(
-        source='caracteristicas_Inmuebles',
-        many=True,
-        read_only=True
-    )
+    disponible_para_invertir = serializers.SerializerMethodField()
+    maximo_invertible = serializers.SerializerMethodField()
+
     class Meta:
-        model= Inmuebles
+        model = Inmuebles
         fields = '__all__'
+
+    def get_disponible_para_invertir(self, obj):
+        return float(obj.disponible_para_invertir)
+
+    def get_maximo_invertible(self, obj):
+        return float(obj.maximo_invertible)
 
 
 
@@ -65,24 +63,35 @@ class PropuestasSerializer(serializers.ModelSerializer):
 
 class TarjetaSerializer(serializers.ModelSerializer):
     class Meta:
-        model= Tarjeta
-        fields = ['id_usuario', 'numero_tarjeta', 'fecha_caducidad', 'nombre_titular']
-        read_only_fields = ('estado','id_usuario')
+        model = Tarjeta
+        fields = ['id', 'numero_tarjeta', 'fecha_caducidad', 'nombre_titular', 'estado']
+        read_only_fields = ['estado']
 
-
-    def validate_numero_tarjeta(self,value):
-        if not is_luhn(value):
-            raise serializers.ValidationError("Numero invalido")
-        return value
-
-
-    def validate_fecha_caducidad(self,value):
+    def validate_numero_tarjeta(self, value):
+        limpio = value.replace(' ', '').replace('-', '')
+        if not is_luhn(limpio):
+            raise serializers.ValidationError("Número inválido")
+        return limpio
+    def validate_fecha_caducidad(self, value):
         from datetime import date
         try:
-            mes, anio = value.split('-')
-            fecha = date(int(anio),int(mes),1)
+            separador = '/' if '/' in value else '-'
+            mes, anio = value.split(separador)
+            fecha = date(int(anio), int(mes), 1)
             if fecha < date.today().replace(day=1):
                 raise serializers.ValidationError("Tarjeta caducada")
-        except ValueError:
+        except (ValueError, AttributeError):
             raise serializers.ValidationError("Formato inválido, usa MM/YYYY")
         return value
+
+
+class PerfilSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Perfil
+        fields = ['foto', 'telefono', 'direccion', 'iban', 'notif_email', 'notif_telefono', 'verificado']
+
+class PerfilCompletoSerializer(serializers.ModelSerializer):
+    perfil = PerfilSerializer()
+    class Meta:
+        model = Usuario
+        fields = ['id', 'username', 'nombre', 'apellidos', 'Nikname', 'email', 'fecha_nacimiento', 'dni', 'perfil']

@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import useAuthStore from '../store/authStore.jsx'
 
 export default function Navbar() {
-  const { usuario, logout } = useAuthStore()
+const { user: usuario, logout } = useAuthStore()
   const navigate = useNavigate()
 
   const handleLogout = () => {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../componentes/Navbar.jsx'
-
+import useAuthStore from '../store/authStore.jsx'
 
 const FALLBACK = [
   'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80',
@@ -10,6 +10,7 @@ const FALLBACK = [
 ]
 
 export default function Home() {
+  const { user } = useAuthStore()
   const [fotos, setFotos] = useState(FALLBACK)
   const [current, setCurrent] = useState(0)
   const navigate = useNavigate()
@@ -18,13 +19,12 @@ export default function Home() {
     fetch('http://127.0.0.1:8000/api/inmuebles/')
       .then(r => r.json())
       .then(data => {
-        const urls = data
-          .filter(i => i.fotos)
-          .map(i =>  i.fotos)
+        const urls = data.filter(i => i.fotos).map(i => i.fotos)
         if (urls.length > 0) setFotos(urls)
       })
       .catch(() => {})
   }, [])
+
   const prev = () => setCurrent((c) => (c - 1 + fotos.length) % fotos.length)
   const next = () => setCurrent((c) => (c + 1) % fotos.length)
 
@@ -75,14 +75,16 @@ export default function Home() {
           <button style={{ ...styles.arrow, right: 0 }} onClick={next}>›</button>
         </div>
 
-        <div style={styles.btns}>
-          <button style={styles.btnNaranja} onClick={() => navigate('/login')}>
-            Iniciar sesión
-          </button>
-          <button style={styles.btnNaranja} onClick={() => navigate('/registro')}>
-            Registrarse
-          </button>
-        </div>
+        {!user && (
+          <div style={styles.btns}>
+            <button style={styles.btnNaranja} onClick={() => navigate('/login')}>
+              Iniciar sesión
+            </button>
+            <button style={styles.btnNaranja} onClick={() => navigate('/registro')}>
+              Registrarse
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

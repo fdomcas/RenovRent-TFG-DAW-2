@@ -30,6 +30,15 @@ class Usuario(AbstractUser):
 
 class Perfil(models.Model):
     id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    foto = models.FileField(upload_to='fotos/perfil/', blank=True, null=True)
+    telefono = models.CharField(max_length=20, blank=True)
+    direccion = models.CharField(max_length=255, blank=True)
+    iban = models.CharField(max_length=34, blank=True)
+    notif_email = models.BooleanField(default=True)
+    notif_telefono = models.BooleanField(default=False)
+    verificado = models.BooleanField(default=False)
+    otp_secret = models.CharField(max_length=32, blank=True, null=True)
+    otp_activo = models.BooleanField(default=False)
 
 class Tarjeta(models.Model):
     id_usuario = models.ManyToManyField(Usuario)
@@ -47,9 +56,9 @@ class Tarjeta(models.Model):
         try:
             mes, anio = self.fecha_caducidad.split('/')
             fecha = date(int(anio), int(mes), 1)
-            self.Estado = fecha >= date.today().replace(day=1)
+            self.estado = fecha >= date.today().replace(day=1)
         except:
-            self.Estado = False
+            self.estado = False
         super().save(*args, **kwargs)
 
 
@@ -151,6 +160,16 @@ class Inmuebles(models.Model):
     tipo= models.CharField(max_length=100, choices=TIPOS_CHOICES, default='Piso')
     precio= models.IntegerField(default=0)
     retorno_anual_porcentaje = models.IntegerField(default=0)
+    num_habitaciones = models.IntegerField(null=True, blank=True)
+    num_banos = models.IntegerField(null=True, blank=True)
+    metros_cuadrados = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    planta = models.IntegerField(null=True, blank=True)
+    garaje = models.BooleanField(default=False)
+    piscina = models.BooleanField(default=False)
+    ascensor = models.BooleanField(default=False)
+    terraza = models.BooleanField(default=False)
+    extras = models.TextField(null=True, blank=True)
+
 
     def save(self, *args, **kwargs):
 
@@ -179,20 +198,6 @@ class Inmuebles(models.Model):
         return self.nombre
 
 
-
-
-class Caracteristicas_Inmuebles(models.Model):
-    id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
-    num_habitaciones = models.IntegerField()
-    num_wc= models.IntegerField()
-    m2 = models.IntegerField()
-    espacios = models.TextField()
-    extras = models.TextField()
-
-    def __str__(self):
-        return str(self.num_habitaciones)
-
-
 class Inversiones(models.Model):
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
@@ -201,7 +206,6 @@ class Inversiones(models.Model):
     retorno_anual = models.IntegerField()
 
 class Chat(models.Model):
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_inmueble = models.ForeignKey(Inmuebles, on_delete=models.CASCADE)
 
 
