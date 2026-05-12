@@ -213,7 +213,7 @@ class Mensaje(models.Model):
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     mensaje = models.TextField()
-    fecha = models.DateField(default=date.today)
+    fecha = models.DateTimeField(auto_now_add=True)
 
 
     def __str__(self):

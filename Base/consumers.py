@@ -45,6 +45,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'usuario_baneado',
                 'usuario_id': usuario_id
             })
+
+            participantes = await self.get_participantes()
+            await self.channel_layer.group_send(self.room_group_name, {
+                'type': 'participantes_update',
+                'participantes': participantes
+            })
+            return
+        if tipo == 'unban' and (self.user.is_staff or self.user.is_superuser):
+            usuario_id = data.get('usuario_id')
+            await self.desbanear_usuario(usuario_id)
+
+            # Avisamos a la sala para actualizar participantes tras desbanear
             participantes = await self.get_participantes()
             await self.channel_layer.group_send(self.room_group_name, {
                 'type': 'participantes_update',
@@ -100,25 +112,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def guardar_mensaje(self, texto):
+        from django.utils import timezone
         chat = Chat.objects.get(id_inmueble_id=self.inmueble_id)
         Mensaje.objects.create(
             id_usuario=self.user,
             id_chat=chat,
             mensaje=texto,
+            fecha=timezone.now()
         )
 
     @database_sync_to_async
     def get_historial(self):
+        from django.utils import timezone
+        import datetime
         chat = Chat.objects.get(id_inmueble_id=self.inmueble_id)
         mensajes = Mensaje.objects.filter(id_chat=chat).order_by('fecha')[:100]
-        return [
-            {
+
+        resultado = []
+        for m in mensajes:
+            hora_str = "00:00"
+            if m.fecha:
+                # Comprobamos si el objeto es datetime (tiene hora) o solo date (no tiene hora)
+                if isinstance(m.fecha, datetime.datetime):
+                    hora_str = timezone.localtime(m.fecha).strftime('%H:%M')
+                else:
+                    # Si es solo un 'date', no podemos extraer horas/minutos
+                    hora_str = "00:00"
+
+            resultado.append({
                 'texto': m.mensaje,
                 'usuario': m.id_usuario.Nikname,
-                'fecha': m.fecha.strftime('%H:%M'),
-            }
-            for m in mensajes
-        ]
+                'fecha': hora_str,
+            })
+
+        return resultado
 
     @database_sync_to_async
     def get_participantes(self):
@@ -147,6 +174,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         User.objects.filter(id=usuario_id).update(is_active=False)
 
     @database_sync_to_async
+    def desbanear_usuario(self, usuario_id):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        User.objects.filter(id=usuario_id).update(is_active=True)
+
+    @database_sync_to_async
     def get_fecha_ahora(self):
         from django.utils import timezone
-        return timezone.now().strftime('%H:%M')
+        return timezone.localtime(timezone.now()).strftime('%H:%M')
