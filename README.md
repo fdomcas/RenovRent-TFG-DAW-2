@@ -4,18 +4,18 @@
 
 ***
 
-## 📋 Descripción general
+## Descripción general
 
 **RenovRent** es una aplicación web desarrollada como Trabajo de Fin de Grado del ciclo **2.º DAW (Desarrollo de Aplicaciones Web)**. La plataforma permite a los usuarios explorar inmuebles, realizar inversiones, gestionar su cartera y comunicarse con otros inversores mediante un sistema de chat en tiempo real.
 
 El proyecto está dividido en dos partes bien diferenciadas:
 
 - **Backend**: API REST construida con Django y Django REST Framework
-- **Frontend**: Interfaz de usuario construida con React + Vite
+- **Frontend**: Interfaz de usuario construida con React + JavaScript
 
 ***
 
-## 🚀 Funcionalidades principales
+## Funcionalidades principales
 
 -  **Catálogo de propiedades** — listado de inmuebles con filtros por ubicación, tipo y precio
 -  **Gestión de inversiones** — realizar, consultar y seguir el retorno de inversiones
@@ -28,7 +28,7 @@ El proyecto está dividido en dos partes bien diferenciadas:
 
 ***
 
-## 🛠️ Tecnologías utilizadas
+## Tecnologías utilizadas
 
 ### Backend
 
@@ -56,7 +56,7 @@ El proyecto está dividido en dos partes bien diferenciadas:
 
 ***
 
-## 📁 Estructura del proyecto
+##  Estructura del proyecto
 
 ```
 renovorent/
@@ -77,7 +77,7 @@ renovorent/
 
 ***
 
-## ⚙️ Instalación y puesta en marcha
+##  Instalación y puesta en marcha
 
 ### Requisitos previos
 
@@ -121,7 +121,7 @@ docker run -p 6379:6379 redis
 
 ***
 
-## 🔐 Variables de entorno
+##  Variables de entorno
 
 Crear un archivo `.env` en la carpeta `backend/` con las siguientes variables:
 
