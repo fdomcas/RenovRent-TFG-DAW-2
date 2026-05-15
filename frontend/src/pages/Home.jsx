@@ -1,178 +1,268 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../componentes/Navbar.jsx'
 import useAuthStore from '../store/authStore.jsx'
-
-const FALLBACK = [
-  'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80',
-  'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=600&q=80',
-  'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80',
-]
+import { T } from '../theme.js'
 
 export default function Home() {
   const { user } = useAuthStore()
-  const [fotos, setFotos] = useState(FALLBACK)
-  const [current, setCurrent] = useState(0)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/inmuebles/')
-      .then(r => r.json())
-      .then(data => {
-        const urls = data.filter(i => i.fotos).map(i => i.fotos)
-        if (urls.length > 0) setFotos(urls)
-      })
-      .catch(() => {})
-  }, [])
-
-  const prev = () => setCurrent((c) => (c - 1 + fotos.length) % fotos.length)
-  const next = () => setCurrent((c) => (c + 1) % fotos.length)
-
-  useEffect(() => {
-    const interval = setInterval(next, 3500)
-    return () => clearInterval(interval)
-  }, [fotos])
-
-  const getVisible = () => {
-    return [-2, -1, 0, 1, 2].map(offset => {
-      const index = (current + offset + fotos.length) % fotos.length
-      return { index, offset }
-    })
-  }
-
   return (
-    <div style={styles.page}>
+    <div style={s.page}>
       <Navbar />
-      <div style={styles.hero}>
-        <div style={styles.bgBlur} />
 
-        <div style={styles.carouselWrapper}>
-          <button style={styles.arrow} onClick={prev}>‹</button>
+      <main style={s.mainContainer}>
+        <section style={s.heroSection}>
+          <div style={s.heroTextContent}>
+            <div style={s.badge}>Plataforma de Inversión Nº1</div>
+            <h1 style={s.heroTitle}>
+              Invierte en <span style={{ color: T.naranja }}>inmuebles</span><br />
+              de forma inteligente.
+            </h1>
+            <p style={s.heroSubtitle}>
+              Accede al mercado inmobiliario desde pequeñas cantidades.
+              Genera ingresos pasivos y construye tu patrimonio sin las complicaciones tradicionales.
+            </p>
 
-          <div style={styles.carousel}>
-            {getVisible().map(({ index, offset }) => {
-              const scale = offset === 0 ? 1 : Math.abs(offset) === 1 ? 0.82 : 0.65
-              const zIndex = offset === 0 ? 5 : Math.abs(offset) === 1 ? 4 : 3
-              const translateX = offset * 220
-              const opacity = Math.abs(offset) === 2 ? 0.5 : 1
+            <div style={s.heroActions}>
+              <button style={s.btnPrimary} onClick={() => navigate('/propiedades')}>
+                Explorar Oportunidades
+              </button>
+              {!user && (
+                <button style={s.btnSecondary} onClick={() => navigate('/registro')}>
+                  Crear cuenta gratis
+                </button>
+              )}
+            </div>
 
-              return (
-                <div
-                  key={offset}
-                  style={{
-                    ...styles.slide,
-                    transform: `translateX(${translateX}px) scale(${scale})`,
-                    zIndex,
-                    opacity,
-                  }}
-                >
-                  <img src={fotos[index]} alt="inmueble" style={styles.img} />
-                </div>
-              )
-            })}
+            <div style={s.statsRow}>
+              <div style={s.statItem}>
+                <span style={s.statNumber}>+15%</span>
+                <span style={s.statLabel}>Retorno medio</span>
+              </div>
+              <div style={s.statDivider} />
+              <div style={s.statItem}>
+                <span style={s.statNumber}>100€</span>
+                <span style={s.statLabel}>Inversión mínima</span>
+              </div>
+            </div>
           </div>
 
-          <button style={{ ...styles.arrow, right: 0 }} onClick={next}>›</button>
-        </div>
-
-        {!user && (
-          <div style={styles.btns}>
-            <button style={styles.btnNaranja} onClick={() => navigate('/login')}>
-              Iniciar sesión
-            </button>
-            <button style={styles.btnNaranja} onClick={() => navigate('/registro')}>
-              Registrarse
-            </button>
+          <div style={s.heroVisual}>
+            <div style={s.imageWrapper}>
+              <img
+                src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80"
+                alt="Propiedad moderna"
+                style={s.heroImage}
+              />
+              <div style={s.floatingCard}>
+                <div style={s.fcHeader}>Rentabilidad Anual</div>
+                <div style={s.fcValue}>12.4%</div>
+                <div style={s.fcFooter}>🟢 +2.1% este mes</div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </section>
+      </main>
     </div>
   )
 }
 
-const styles = {
-  page: { minHeight: '100vh', background: '#f0f0f0' },
-  hero: {
-    position: 'relative',
-    minHeight: 'calc(100vh - 64px)',
+const s = {
+  page: {
+    minHeight: '100vh',
+    backgroundColor: T.bg,
+    color: T.texto,
+    fontFamily: "'Inter', sans-serif",
+    paddingBottom: '5rem',
+  },
+  mainContainer: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '2rem 1.5rem',
     display: 'flex',
     flexDirection: 'column',
+    gap: '5rem',
+  },
+  heroSection: {
+    display: 'grid',
+    gridTemplateColumns: '1.2fr 1fr',
+    gap: '4rem',
     alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    background: 'linear-gradient(135deg, #e8e8e8 0%, #d0d0d0 100%)',
+    paddingTop: '2rem',
   },
-  bgBlur: {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: 'url(https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80)',
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    filter: 'blur(8px) brightness(1.1)',
-    opacity: 0.3,
-    zIndex: 0,
-  },
-  carouselWrapper: {
-    position: 'relative',
-    zIndex: 1,
+  heroTextContent: {
     display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: '900px',
-    margin: '0 auto',
-    padding: '2rem 0',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '1.5rem',
   },
-  carousel: {
-    position: 'relative',
-    height: '280px',
-    flex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+  badge: {
+    background: 'rgba(232, 98, 26, 0.1)',
+    color: T.naranja,
+    padding: '0.4rem 1rem',
+    borderRadius: '100px',
+    fontSize: '0.85rem',
+    fontWeight: '600',
+    letterSpacing: '0.5px',
   },
-  slide: {
-    position: 'absolute',
-    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-    borderRadius: '16px',
-    overflow: 'hidden',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-    width: '260px',
-    height: '200px',
+  heroTitle: {
+    fontSize: 'clamp(2.5rem, 4vw, 3.5rem)',
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: '800',
+    lineHeight: '1.1',
+    margin: 0,
+    color: '#1a1a1a',
   },
-  img: { width: '100%', height: '100%', objectFit: 'cover' },
-  arrow: {
-    position: 'absolute',
-    zIndex: 10,
-    background: 'rgba(255,255,255,0.9)',
-    border: 'none',
-    borderRadius: '50%',
-    width: '44px',
-    height: '44px',
-    fontSize: '1.5rem',
-    cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#333',
+  heroSubtitle: {
+    fontSize: '1.1rem',
+    lineHeight: '1.6',
+    color: T.textoMuted,
+    maxWidth: '500px',
+    margin: 0,
   },
-  btns: {
-    position: 'relative',
-    zIndex: 1,
+  heroActions: {
     display: 'flex',
     gap: '1rem',
     marginTop: '1rem',
+    flexWrap: 'wrap',
   },
-  btnNaranja: {
-    padding: '0.75rem 2rem',
-    background: '#F97316',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '8px',
+  btnPrimary: {
+    background: T.naranja,
+    color: T.blanco,
+    padding: '1rem 2rem',
+    borderRadius: '100px',
     fontSize: '1rem',
     fontWeight: '600',
+    border: 'none',
     cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(249,115,22,0.4)',
-    transition: 'background 0.2s',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 14px rgba(232, 98, 26, 0.3)',
+  },
+  btnSecondary: {
+    background: 'transparent',
+    color: '#1a1a1a',
+    padding: '1rem 2rem',
+    borderRadius: '100px',
+    fontSize: '1rem',
+    fontWeight: '600',
+    border: `2px solid ${T.borde}`,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  statsRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '2rem',
+    marginTop: '2rem',
+    paddingTop: '2rem',
+    borderTop: `1px solid ${T.borde}`,
+    width: '100%',
+    maxWidth: '400px',
+  },
+  statItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+  },
+  statNumber: {
+    fontSize: '1.8rem',
+    fontWeight: '800',
+    color: '#1a1a1a',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  statLabel: {
+    fontSize: '0.85rem',
+    color: T.textoMuted,
+  },
+  statDivider: {
+    width: '1px',
+    height: '40px',
+    background: T.borde,
+  },
+  heroVisual: {
+    position: 'relative',
+    display: 'flex',
+    justifyContent: 'flex-end',
+  },
+  imageWrapper: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: '450px',
+  },
+  heroImage: {
+    width: '100%',
+    height: '600px',
+    objectFit: 'cover',
+    borderRadius: '24px',
+    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+    transform: 'perspective(1000px) rotateY(-5deg)',
+  },
+  floatingCard: {
+    position: 'absolute',
+    bottom: '40px',
+    left: '-40px',
+    background: T.blanco,
+    padding: '1.2rem',
+    borderRadius: '16px',
+    boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.3rem',
+    zIndex: 2,
+  },
+  fcHeader: { fontSize: '0.8rem', color: T.textoMuted, fontWeight: '600' },
+  fcValue: { fontSize: '1.5rem', fontWeight: '800', color: '#1a1a1a', fontVariantNumeric: 'tabular-nums' },
+  fcFooter: { fontSize: '0.75rem', color: T.ok, fontWeight: '600', marginTop: '0.2rem' },
+  dashboardSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1.5rem',
+  },
+  sectionTitle: {
+    fontSize: '1.8rem',
+    fontFamily: "'Playfair Display', serif",
+    fontWeight: '700',
+    color: '#1a1a1a',
+    margin: 0,
+  },
+  kpiGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '1.5rem',
+  },
+  kpiCard: {
+    background: T.blanco,
+    padding: '1.5rem',
+    borderRadius: '16px',
+    border: `1px solid ${T.borde}`,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.8rem',
+    cursor: 'pointer',
+    transition: 'transform 0.2s',
+  },
+  kpiCardActive: {
+    background: '#1a1a1a',
+    padding: '1.5rem',
+    borderRadius: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.8rem',
+    cursor: 'pointer',
+    transition: 'transform 0.2s',
+  },
+  kpiLabel: {
+    fontSize: '0.9rem',
+    color: T.textoMuted,
+    fontWeight: '500',
+  },
+  kpiValue: {
+    fontSize: '1.2rem',
+    fontWeight: '700',
+    color: '#fff',
   },
 }
+
+
+s.kpiCard.kpiValue = { ...s.kpiValue, color: '#1a1a1a' }

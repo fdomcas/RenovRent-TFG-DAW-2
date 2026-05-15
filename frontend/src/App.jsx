@@ -4,7 +4,7 @@ import Registro from "./pages/registro.jsx";
 import Home from "./pages/Home.jsx";
 import Propiedades from "./pages/Propiedades.jsx";
 import PropiedadDetalle from "./pages/PropiedadDetalles.jsx";
-import Chat from "./pages/Chat.jsx";
+import Chat from "./componentes/Chat.jsx";
 import Recomendaciones from "./pages/Recomendaciones.jsx";
 import Perfil from "./pages/Perfil.jsx";
 

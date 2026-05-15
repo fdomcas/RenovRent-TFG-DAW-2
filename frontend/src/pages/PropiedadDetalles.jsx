@@ -4,6 +4,8 @@ import api from '../api/axios.jsx'
 import Navbar from '../componentes/Navbar.jsx'
 import useAuthStore from '../store/authStore.jsx'
 import ModalInversion from '../componentes/Inversion.jsx'
+import ChatInmueble from '../componentes/Chat.jsx'
+import { T, G } from '../theme.js'
 
 const FALLBACK = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=900&q=80'
 
@@ -11,36 +13,55 @@ export default function PropiedadDetalle() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const isAdmin = user?.is_staff || user?.is_superuser
 
+
+
+    useEffect(() => {
+    if (!user) {
+      navigate('/login')
+    }
+  }, [user, navigate]);
+
+
+  const isAdmin = user?.is_staff || user?.is_superuser
   const [inmueble, setInmueble] = useState(null)
   const [loading, setLoading] = useState(true)
   const [fotoActiva, setFotoActiva] = useState(0)
+
   const [editando, setEditando] = useState(false)
   const [formInmueble, setFormInmueble] = useState({})
   const [guardando, setGuardando] = useState(false)
-  const [msgEdit, setMsgEdit] = useState('')
+  const [toast, setToast] = useState({ msg: '', tipo: '' })
   const [tipos, setTipos] = useState([])
   const [mostrarInvertir, setMostrarInvertir] = useState(false)
+  const [esInversor, setEsInversor] = useState(false)
+
+
+  const [mostrarChat, setMostrarChat] = useState(false)
+
+  const mostrarMsg = (msg, tipo = 'ok') => {
+    setToast({ msg, tipo })
+    setTimeout(() => setToast({ msg: '', tipo: '' }), 3000)
+  }
 
   const cargar = () => {
     api.get(`/inmuebles/${id}/`)
       .then(r => {
         setInmueble(r.data)
         setFormInmueble({
-          nombre:                   r.data.nombre,
-          ubicacion:                r.data.ubicacion,
-          tipo:                     r.data.tipo,
-          precio:                   r.data.precio,
+          nombre: r.data.nombre,
+          ubicacion: r.data.ubicacion,
+          tipo: r.data.tipo,
+          precio: r.data.precio,
           retorno_anual_porcentaje: r.data.retorno_anual_porcentaje,
-          num_habitaciones:         r.data.num_habitaciones ?? '',
-          num_banos:                r.data.num_banos ?? '',
-          metros_cuadrados:         r.data.metros_cuadrados ?? '',
-          planta:                   r.data.planta ?? '',
-          garaje:                   r.data.garaje ?? false,
-          piscina:                  r.data.piscina ?? false,
-          ascensor:                 r.data.ascensor ?? false,
-          terraza:                  r.data.terraza ?? false,
+          num_habitaciones: r.data.num_habitaciones ?? '',
+          num_banos: r.data.num_banos ?? '',
+          metros_cuadrados: r.data.metros_cuadrados ?? '',
+          planta: r.data.planta ?? '',
+          garaje: r.data.garaje ?? false,
+          piscina: r.data.piscina ?? false,
+          ascensor: r.data.ascensor ?? false,
+          terraza: r.data.terraza ?? false,
         })
       })
       .catch(() => navigate('/propiedades'))
@@ -50,271 +71,522 @@ export default function PropiedadDetalle() {
   useEffect(() => {
     cargar()
     api.get('/inmuebles/tipos/').then(r => setTipos(r.data))
-  }, [id])
+
+    if (user) {
+      api.get('/inversiones/')
+        .then(r => {
+          const misInversiones = Array.isArray(r.data) ? r.data : (r.data.results || [])
+          const tieneInversion = misInversiones.some(inv =>
+            String(inv.id_inmueble) === String(id) || String(inv.inmueble?.id) === String(id)
+          )
+          setEsInversor(tieneInversion)
+        })
+        .catch(() => setEsInversor(false))
+    } else {
+      setEsInversor(false)
+    }
+  }, [id, user])
 
   const handleGuardar = async (e) => {
     e.preventDefault()
     setGuardando(true)
-    setMsgEdit('')
+
     try {
       const payload = {
-        nombre:                   formInmueble.nombre,
-        ubicacion:                formInmueble.ubicacion,
-        tipo:                     formInmueble.tipo,
-        precio:                   formInmueble.precio,
+        nombre: formInmueble.nombre,
+        ubicacion: formInmueble.ubicacion,
+        tipo: formInmueble.tipo,
+        precio: formInmueble.precio,
         retorno_anual_porcentaje: formInmueble.retorno_anual_porcentaje,
-        num_habitaciones:         formInmueble.num_habitaciones !== '' ? formInmueble.num_habitaciones : null,
-        num_banos:                formInmueble.num_banos !== '' ? formInmueble.num_banos : null,
-        metros_cuadrados:         formInmueble.metros_cuadrados !== '' ? formInmueble.metros_cuadrados : null,
-        planta:                   formInmueble.planta !== '' ? formInmueble.planta : null,
-        garaje:                   formInmueble.garaje,
-        piscina:                  formInmueble.piscina,
-        ascensor:                 formInmueble.ascensor,
-        terraza:                  formInmueble.terraza,
+        num_habitaciones: formInmueble.num_habitaciones !== '' ? formInmueble.num_habitaciones : null,
+        num_banos: formInmueble.num_banos !== '' ? formInmueble.num_banos : null,
+        metros_cuadrados: formInmueble.metros_cuadrados !== '' ? formInmueble.metros_cuadrados : null,
+        planta: formInmueble.planta !== '' ? formInmueble.planta : null,
+        garaje: formInmueble.garaje,
+        piscina: formInmueble.piscina,
+        ascensor: formInmueble.ascensor,
+        terraza: formInmueble.terraza,
       }
+
       await api.patch(`/inmuebles/${id}/`, payload)
-      setMsgEdit('✅ Cambios guardados.')
+      mostrarMsg('Cambios guardados correctamente.', 'ok')
       cargar()
-      setTimeout(() => setEditando(false), 1000)
+      setTimeout(() => setEditando(false), 600)
     } catch (err) {
-      console.error('Error detalle:', JSON.stringify(err.response?.data, null, 2))
-      setMsgEdit('❌ Error al guardar.')
+      mostrarMsg('Error al guardar los cambios.', 'err')
     } finally {
       setGuardando(false)
     }
   }
 
-  if (loading) return <div style={s.center}>Cargando...</div>
+  if (loading) {
+    return (
+      <div style={G.page}>
+        <Navbar />
+        <div style={G.container}>
+          <p style={s.estadoCenter}>Cargando propiedad...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!inmueble) return null
 
-  const fotos = Array.isArray(inmueble.fotos)
-    ? inmueble.fotos.filter(Boolean)
-    : inmueble.fotos ? [inmueble.fotos] : [FALLBACK]
-
-  const porcentaje = parseFloat(inmueble.retorno_anual_porcentaje ?? 0)
-
-  const extras = [
-    inmueble.garaje   && 'Garaje',
-    inmueble.piscina  && 'Piscina',
-    inmueble.ascensor && 'Ascensor',
-    inmueble.terraza  && 'Terraza',
-  ].filter(Boolean)
+  const fotos = inmueble.fotos_detalle?.length > 0 ? inmueble.fotos_detalle : [{ imagen: inmueble.fotos || FALLBACK }]
 
   return (
-    <div style={s.page}>
+    <div style={G.page}>
       <Navbar />
-      <div style={s.container}>
 
-        <button style={s.back} onClick={() => navigate('/propiedades')}>← Volver</button>
+      {toast.msg && (
+        <div style={toast.tipo === 'ok' ? s.toastOk : s.toastErr}>
+          {toast.msg}
+        </div>
+      )}
 
-        <div style={s.layout}>
 
-          {/* COLUMNA IZQUIERDA */}
-          <div style={s.colLeft}>
-            <div style={s.heroWrap}>
-              <img
-                src={fotos[fotoActiva] || FALLBACK}
-                alt={inmueble.nombre}
-                style={s.heroImg}
-                onError={e => { e.target.src = FALLBACK }}
-              />
-              {isAdmin && (
-                <button style={s.btnEditar} onClick={() => setEditando(true)}>
-                  ✏️ Editar
-                </button>
-              )}
-            </div>
+      {mostrarInvertir && (
+        <ModalInversion
+          inmueble={inmueble}
+          onClose={() => setMostrarInvertir(false)}
+          onSuccess={() => {
+            setMostrarInvertir(false)
+            setEsInversor(true)
+            cargar()
+            mostrarMsg('¡Inversión completada! Ya puedes acceder al chat.', 'ok')
+          }}
+        />
+      )}
 
-            {fotos.length > 1 && (
-              <div style={s.thumbRow}>
-                {fotos.map((f, i) => (
-                  <div
-                    key={i}
-                    style={{ ...s.thumb, outline: i === fotoActiva ? '3px solid #F97316' : '3px solid transparent' }}
-                    onClick={() => setFotoActiva(i)}
-                  >
-                    <img src={f || FALLBACK} alt={`foto ${i + 1}`} style={s.thumbImg}
-                      onError={e => { e.target.src = FALLBACK }} />
-                  </div>
-                ))}
+
+      {mostrarChat && esInversor && (
+        <div style={G.overlay} onClick={() => setMostrarChat(false)}>
+          {/* Usamos un modal especial más grande para el chat */}
+          <div style={s.modalChat} onClick={e => e.stopPropagation()}>
+            <div style={s.modalChatHeader}>
+              <div>
+                <h3 style={{ ...G.h3, margin: 0 }}>Chat de Inversores</h3>
+                <p style={s.modalChatSub}>{inmueble.nombre}</p>
               </div>
-            )}
-
-            <button style={s.btnInvertir} onClick={() => setMostrarInvertir(true)}>
-              Invertir
-            </button>
-          </div>
-
-          {/* COLUMNA DERECHA */}
-          <div style={s.colRight}>
-            <div style={s.panelInfo}>
-              <h2 style={s.nombreTitulo}>{inmueble.nombre}</h2>
-              <div style={s.infoFila}><span style={s.infoLabel}>Tipo:</span><span style={s.infoVal}>{inmueble.tipo}</span></div>
-              <div style={s.infoFila}><span style={s.infoLabel}>Ubicación:</span><span style={s.infoVal}>{inmueble.ubicacion}</span></div>
-              {inmueble.metros_cuadrados != null && <div style={s.infoFila}><span style={s.infoLabel}>Tamaño:</span><span style={s.infoVal}>{inmueble.metros_cuadrados} m²</span></div>}
-              {inmueble.num_habitaciones != null && <div style={s.infoFila}><span style={s.infoLabel}>Habitaciones:</span><span style={s.infoVal}>{inmueble.num_habitaciones}</span></div>}
-              {inmueble.num_banos != null && <div style={s.infoFila}><span style={s.infoLabel}>Baños:</span><span style={s.infoVal}>{inmueble.num_banos}</span></div>}
-              {inmueble.planta != null && <div style={s.infoFila}><span style={s.infoLabel}>Planta:</span><span style={s.infoVal}>{inmueble.planta}ª</span></div>}
-              <div style={s.separador} />
-              <div style={s.infoFila}><span style={s.infoLabel}>Precio:</span><span style={{ ...s.infoVal, fontWeight: 700, color: '#1a1a1a' }}>{Number(inmueble.precio).toLocaleString('es-ES')} €</span></div>
-              <div style={s.infoFila}><span style={s.infoLabel}>Retorno anual:</span><span style={{ ...s.infoVal, fontWeight: 700, color: '#16a34a' }}>{porcentaje}%</span></div>
-              {extras.length > 0 && (
-                <div style={s.infoFila}>
-                  <span style={s.infoLabel}>Extras:</span>
-                  <span style={s.infoVal}>{extras.join(', ')}</span>
-                </div>
-              )}
-            </div>
-
-            <div style={s.panelChat}>
-              <p style={s.chatAviso}>🔒 Solo inversores de este inmueble pueden ver el chat</p>
-              <button style={s.btnChat} onClick={() => navigate(`/chat/${id}`)}>
-                💬 Acceder al chat
+              <button style={s.btnCloseModal} onClick={() => setMostrarChat(false)}>
+                ✕
               </button>
+            </div>
+            <div style={s.modalChatBody}>
+              <ChatInmueble inmuebleId={id} />
             </div>
           </div>
         </div>
+      )}
 
-        {/* MODAL INVERTIR — nuevo */}
-        {mostrarInvertir && (
-          <ModalInversion
-            inmueble={inmueble}
-            onClose={() => setMostrarInvertir(false)}
-          />
-        )}
+      <div style={s.heroBar}>
+        <div style={{ ...G.container, ...s.heroContent }}>
+          <button style={G.btnGhost} onClick={() => navigate('/propiedades')}>
+            ← Volver a propiedades
+          </button>
 
-        {/* MODAL EDICIÓN */}
-        {editando && (
-          <div style={s.modalOverlay} onClick={() => setEditando(false)}>
-            <div style={s.modal} onClick={e => e.stopPropagation()}>
-              <h2 style={{ ...s.h2, marginBottom: '1.5rem' }}>✏️ Editar inmueble</h2>
-              <form onSubmit={handleGuardar} style={s.form}>
+          {isAdmin && (
+            <button
+              style={editando ? G.btnGhost : G.btnSecundario}
+              onClick={() => setEditando(!editando)}
+            >
+              {editando ? 'Cancelar edición' : 'Editar inmueble'}
+            </button>
+          )}
+        </div>
+      </div>
 
-                <p style={s.seccion}>Datos generales</p>
-                <label style={s.label}>Nombre</label>
-                <input style={s.input} value={formInmueble.nombre || ''}
-                  onChange={e => setFormInmueble({ ...formInmueble, nombre: e.target.value })} />
+      <div style={G.container}>
+        {editando ? (
+          <form onSubmit={handleGuardar} style={s.editForm}>
+            <div style={s.editHeader}>
+              <h2 style={G.h2}>Modo edición</h2>
+              <button type="submit" style={G.btnPrimario} disabled={guardando}>
+                {guardando ? 'Guardando...' : 'Guardar cambios'}
+              </button>
+            </div>
 
-                <label style={s.label}>Ubicación</label>
-                <input style={s.input} value={formInmueble.ubicacion || ''}
-                  onChange={e => setFormInmueble({ ...formInmueble, ubicacion: e.target.value })} />
+            <div style={s.editGrid}>
+              <div style={s.inputGroup}>
+                <label style={G.label}>Nombre</label>
+                <input style={G.input} value={formInmueble.nombre} onChange={e => setFormInmueble({...formInmueble, nombre: e.target.value})} required />
+              </div>
 
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={s.label}>Precio (€)</label>
-                    <input type="number" style={s.input} value={formInmueble.precio || ''}
-                      onChange={e => setFormInmueble({ ...formInmueble, precio: e.target.value })} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={s.label}>Retorno anual (%)</label>
-                    <input type="number" step="0.01" style={s.input} value={formInmueble.retorno_anual_porcentaje || ''}
-                      onChange={e => setFormInmueble({ ...formInmueble, retorno_anual_porcentaje: e.target.value })} />
-                  </div>
-                </div>
+              <div style={s.inputGroup}>
+                <label style={G.label}>Ubicación</label>
+                <input style={G.input} value={formInmueble.ubicacion} onChange={e => setFormInmueble({...formInmueble, ubicacion: e.target.value})} required />
+              </div>
 
-                <label style={s.label}>Tipo</label>
-                <select style={s.input} value={formInmueble.tipo || ''}
-                  onChange={e => setFormInmueble({ ...formInmueble, tipo: e.target.value })}>
-                  <option value="">-- Selecciona tipo --</option>
-                  {tipos.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
+              <div style={s.inputGroup}>
+                <label style={G.label}>Tipo</label>
+                <select style={G.input} value={formInmueble.tipo} onChange={e => setFormInmueble({...formInmueble, tipo: e.target.value})}>
+                  {tipos.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
+              </div>
 
-                <p style={s.seccion}>Características</p>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-                  <div>
-                    <label style={s.label}>Habitaciones</label>
-                    <input type="number" style={s.input} value={formInmueble.num_habitaciones ?? ''}
-                      onChange={e => setFormInmueble({ ...formInmueble, num_habitaciones: e.target.value })} />
-                  </div>
-                  <div>
-                    <label style={s.label}>Baños</label>
-                    <input type="number" style={s.input} value={formInmueble.num_banos ?? ''}
-                      onChange={e => setFormInmueble({ ...formInmueble, num_banos: e.target.value })} />
-                  </div>
-                  <div>
-                    <label style={s.label}>Metros cuadrados</label>
-                    <input type="number" style={s.input} value={formInmueble.metros_cuadrados ?? ''}
-                      onChange={e => setFormInmueble({ ...formInmueble, metros_cuadrados: e.target.value })} />
-                  </div>
-                  <div>
-                    <label style={s.label}>Planta</label>
-                    <input type="number" style={s.input} value={formInmueble.planta ?? ''}
-                      onChange={e => setFormInmueble({ ...formInmueble, planta: e.target.value })} />
-                  </div>
+              <div style={s.inputGroup}>
+                <label style={G.label}>Precio (€)</label>
+                <input style={G.input} type="number" step="0.01" value={formInmueble.precio} onChange={e => setFormInmueble({...formInmueble, precio: e.target.value})} required />
+              </div>
+
+              <div style={s.inputGroup}>
+                <label style={G.label}>Retorno Anual (%)</label>
+                <input style={G.input} type="number" step="0.01" value={formInmueble.retorno_anual_porcentaje} onChange={e => setFormInmueble({...formInmueble, retorno_anual_porcentaje: e.target.value})} required />
+              </div>
+
+              <div style={s.inputGroup}>
+                <label style={G.label}>Metros Cuadrados</label>
+                <input style={G.input} type="number" value={formInmueble.metros_cuadrados} onChange={e => setFormInmueble({...formInmueble, metros_cuadrados: e.target.value})} />
+              </div>
+
+              <div style={s.inputGroup}>
+                <label style={G.label}>Nº Habitaciones</label>
+                <input style={G.input} type="number" value={formInmueble.num_habitaciones} onChange={e => setFormInmueble({...formInmueble, num_habitaciones: e.target.value})} />
+              </div>
+
+              <div style={s.inputGroup}>
+                <label style={G.label}>Nº Baños</label>
+                <input style={G.input} type="number" value={formInmueble.num_banos} onChange={e => setFormInmueble({...formInmueble, num_banos: e.target.value})} />
+              </div>
+
+              <div style={s.inputGroup}>
+                <label style={G.label}>Planta</label>
+                <input style={G.input} type="text" value={formInmueble.planta} onChange={e => setFormInmueble({...formInmueble, planta: e.target.value})} />
+              </div>
+            </div>
+
+            <div style={s.editChecks}>
+              <label style={s.checkItem}>
+                <input type="checkbox" checked={formInmueble.garaje} onChange={e => setFormInmueble({...formInmueble, garaje: e.target.checked})} /> Garaje
+              </label>
+              <label style={s.checkItem}>
+                <input type="checkbox" checked={formInmueble.piscina} onChange={e => setFormInmueble({...formInmueble, piscina: e.target.checked})} /> Piscina
+              </label>
+              <label style={s.checkItem}>
+                <input type="checkbox" checked={formInmueble.ascensor} onChange={e => setFormInmueble({...formInmueble, ascensor: e.target.checked})} /> Ascensor
+              </label>
+              <label style={s.checkItem}>
+                <input type="checkbox" checked={formInmueble.terraza} onChange={e => setFormInmueble({...formInmueble, terraza: e.target.checked})} /> Terraza
+              </label>
+            </div>
+          </form>
+        ) : (
+          <div style={s.layoutPrincipal}>
+            <div style={s.colIzquierda}>
+              <div style={s.galeriaWrap}>
+                <div style={s.fotoPrincipal}>
+                  <img
+                    src={fotos[fotoActiva]?.imagen || FALLBACK}
+                    alt={inmueble.nombre}
+                    onError={e => { e.target.src = FALLBACK }}
+                    style={s.imgFull}
+                  />
+                  <span style={s.badgeTipo}>{inmueble.tipo}</span>
                 </div>
 
-                <div style={s.checkGrid}>
-                  {['garaje', 'piscina', 'ascensor', 'terraza'].map(campo => (
-                    <label key={campo} style={s.checkLabel}>
-                      <input
-                        type="checkbox"
-                        checked={formInmueble[campo] || false}
-                        onChange={e => setFormInmueble({ ...formInmueble, [campo]: e.target.checked })}
-                      />
-                      {campo.charAt(0).toUpperCase() + campo.slice(1)}
-                    </label>
-                  ))}
-                </div>
-
-                {msgEdit && (
-                  <p style={{ ...s.msgBox, background: msgEdit.includes('✅') ? '#dcfce7' : '#fee2e2', color: msgEdit.includes('✅') ? '#166534' : '#991b1b' }}>
-                    {msgEdit}
-                  </p>
+                {fotos.length > 1 && (
+                  <div style={s.thumbnailsRow}>
+                    {fotos.map((f, i) => (
+                      <div
+                        key={f.id || i}
+                        style={i === fotoActiva ? s.thumbActivo : s.thumb}
+                        onClick={() => setFotoActiva(i)}
+                      >
+                        <img
+                          src={f.imagen || FALLBACK}
+                          alt={`Vista ${i+1}`}
+                          onError={e => { e.target.src = FALLBACK }}
+                          style={s.imgFull}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 )}
-                <div style={{ display: 'flex', gap: '0.8rem', marginTop: '0.5rem' }}>
-                  <button type="submit" style={s.btnNaranja} disabled={guardando}>
-                    {guardando ? 'Guardando...' : 'Guardar cambios'}
-                  </button>
-                  <button type="button" style={s.btnGris} onClick={() => setEditando(false)}>
-                    Cancelar
-                  </button>
+              </div>
+
+              <div style={s.bloqueInfo}>
+                <h1 style={{ ...G.h1, marginBottom: '0.5rem' }}>{inmueble.nombre}</h1>
+                <p style={s.ubicacion}>📍 {inmueble.ubicacion}</p>
+
+                <hr style={{ ...G.hr, margin: '1.5rem 0' }} />
+
+                <h2 style={{ ...G.h2, marginBottom: '1rem' }}>Características</h2>
+
+                <div style={s.caracteristicasGrid}>
+                  {inmueble.metros_cuadrados && (
+                    <div style={s.charItem}>
+                      <span style={s.charLabel}>Superficie</span>
+                      <span style={s.charValue}>{inmueble.metros_cuadrados} m²</span>
+                    </div>
+                  )}
+                  {inmueble.num_habitaciones != null && (
+                    <div style={s.charItem}>
+                      <span style={s.charLabel}>Habitaciones</span>
+                      <span style={s.charValue}>{inmueble.num_habitaciones}</span>
+                    </div>
+                  )}
+                  {inmueble.num_banos != null && (
+                    <div style={s.charItem}>
+                      <span style={s.charLabel}>Baños</span>
+                      <span style={s.charValue}>{inmueble.num_banos}</span>
+                    </div>
+                  )}
+                  {inmueble.planta && (
+                    <div style={s.charItem}>
+                      <span style={s.charLabel}>Planta</span>
+                      <span style={s.charValue}>{inmueble.planta}</span>
+                    </div>
+                  )}
                 </div>
-              </form>
+
+                <div style={s.extrasList}>
+                  {inmueble.garaje && <span style={s.extraTag}>🚗 Garaje</span>}
+                  {inmueble.piscina && <span style={s.extraTag}>🏊 Piscina</span>}
+                  {inmueble.ascensor && <span style={s.extraTag}>🛗 Ascensor</span>}
+                  {inmueble.terraza && <span style={s.extraTag}>☀️ Terraza</span>}
+                </div>
+              </div>
+            </div>
+
+            <div style={s.colDerecha}>
+              <div style={s.tarjetaInversion}>
+                <div style={s.precioBox}>
+                  <span style={s.precioLabel}>Precio del inmueble</span>
+                  <span style={s.precioValor}>{Number(inmueble.precio).toLocaleString('es-ES')} €</span>
+                </div>
+
+                <div style={s.retornoBox}>
+                  <div>
+                    <span style={s.retornoLabel}>Retorno Anual Estimado</span>
+                    <span style={s.retornoValor}>{inmueble.retorno_anual_porcentaje}%</span>
+                  </div>
+                  <div style={s.retornoChart}>📈</div>
+                </div>
+
+                <hr style={{ ...G.hr, margin: '1.25rem 0' }} />
+
+                <button
+                  style={{ ...G.btnPrimario, width: '100%', padding: '0.8rem', fontSize: '1rem', marginBottom: '1rem' }}
+                  onClick={() => setMostrarInvertir(true)}
+                >
+                  Invertir ahora
+                </button>
+
+                {esInversor ? (
+                  <button
+                    style={{ ...G.btnSecundario, width: '100%', padding: '0.8rem', fontSize: '0.95rem' }}
+                    onClick={() => setMostrarChat(true)}
+                  >
+                    💬 Abrir Chat de Inversores
+                  </button>
+                ) : (
+                  <button
+                    style={{ ...G.btnGhost, width: '100%', padding: '0.8rem', fontSize: '0.95rem', opacity: 0.7 }}
+                    disabled
+                  >
+                    🔒 Chat bloqueado
+                  </button>
+                )}
+
+                <p style={s.garantiaTexto}>Transacción segura mediante pasarela verificada</p>
+              </div>
             </div>
           </div>
         )}
-
       </div>
     </div>
   )
 }
 
 const s = {
-  page:          { minHeight: '100vh', background: '#f5f5f0' },
-  center:        { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: '#888' },
-  container:     { maxWidth: '1100px', margin: '0 auto', padding: '1rem 1rem 3rem' },
-  back:          { color: '#F97316', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '1rem', background: 'none', border: 'none', padding: 0 },
-  layout:        { display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' },
-  colLeft:       { flex: '1 1 480px', display: 'flex', flexDirection: 'column', gap: '0.7rem' },
-  colRight:      { flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1rem' },
-  heroWrap:      { position: 'relative', width: '100%', height: '320px', borderRadius: '12px', overflow: 'hidden' },
-  heroImg:       { width: '100%', height: '100%', objectFit: 'cover' },
-  btnEditar:     { position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.6)', color: '#fff', border: 'none', borderRadius: '8px', padding: '6px 14px', fontWeight: '600', cursor: 'pointer', fontSize: '0.85rem' },
-  thumbRow:      { display: 'flex', gap: '0.5rem', overflowX: 'auto' },
-  thumb:         { flexShrink: 0, width: '100px', height: '70px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer' },
-  thumbImg:      { width: '100%', height: '100%', objectFit: 'cover' },
-  btnInvertir:   { width: '100%', padding: '1rem', background: '#F97316', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '1.1rem', cursor: 'pointer', marginTop: '0.3rem' },
-  panelInfo:     { background: '#fff', borderRadius: '14px', padding: '1.4rem', display: 'flex', flexDirection: 'column', gap: '0.6rem', boxShadow: '0 4px 16px rgba(0,0,0,0.07)' },
-  nombreTitulo:  { fontSize: '1.3rem', fontWeight: '800', color: '#1a1a1a', marginBottom: '0.4rem' },
-  infoFila:      { display: 'flex', gap: '0.5rem', fontSize: '0.95rem' },
-  infoLabel:     { fontWeight: '600', color: '#1a1a1a', minWidth: '110px' },
-  infoVal:       { color: '#555' },
-  separador:     { height: '1px', background: '#eee', margin: '0.2rem 0' },
-  panelChat:     { background: '#fff', borderRadius: '14px', padding: '1.4rem', display: 'flex', flexDirection: 'column', gap: '0.8rem', boxShadow: '0 4px 16px rgba(0,0,0,0.07)' },
-  chatAviso:     { fontSize: '0.88rem', color: '#aaa', textAlign: 'center', padding: '0.5rem 0' },
-  btnChat:       { width: '100%', padding: '0.8rem', background: '#F97316', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' },
-  modalOverlay:  { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' },
-  modal:         { background: '#fff', borderRadius: '16px', padding: '2rem', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' },
-  h2:            { fontSize: '1.2rem', fontWeight: '700', color: '#1a1a1a' },
-  form:          { display: 'flex', flexDirection: 'column', gap: '0.8rem' },
-  label:         { fontSize: '0.82rem', fontWeight: '600', color: '#555' },
-  input:         { padding: '0.65rem 0.9rem', borderRadius: '8px', border: '1px solid #e0e0e0', fontSize: '0.95rem', outline: 'none', width: '100%' },
-  msgBox:        { borderRadius: '8px', padding: '0.7rem 1rem', fontSize: '0.88rem' },
-  btnNaranja:    { flex: 1, padding: '0.8rem', background: '#F97316', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '0.95rem', cursor: 'pointer' },
-  btnGris:       { flex: 1, padding: '0.8rem', background: '#f3f4f6', color: '#444', border: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer' },
-  seccion:       { fontSize: '0.78rem', fontWeight: '700', color: '#F97316', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '0.5rem' },
-  checkGrid:     { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' },
-  checkLabel:    { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#444', cursor: 'pointer' },
+  toastOk: {
+    ...G.toastOk,
+    position: 'fixed', top: '1.25rem', right: '1.25rem', zIndex: 9999,
+  },
+  toastErr: {
+    ...G.toastErr,
+    position: 'fixed', top: '1.25rem', right: '1.25rem', zIndex: 9999,
+  },
+  estadoCenter: {
+    textAlign: 'center', color: T.textoMuted, padding: '4rem 0',
+  },
+  heroBar: {
+    background: T.blanco,
+    borderBottom: `1px solid ${T.borde}`,
+    marginBottom: '2rem',
+    padding: '0.8rem 0',
+  },
+  heroContent: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  },
+  layoutPrincipal: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 380px',
+    gap: '2rem',
+    alignItems: 'start',
+    paddingBottom: '4rem',
+  },
+  colIzquierda: {
+    display: 'flex', flexDirection: 'column', gap: '2rem',
+  },
+  colDerecha: {
+    display: 'flex', flexDirection: 'column', gap: '1.5rem',
+    position: 'sticky', top: '2rem',
+  },
+  galeriaWrap: {
+    display: 'flex', flexDirection: 'column', gap: '0.8rem',
+  },
+  fotoPrincipal: {
+    position: 'relative', width: '100%', aspectRatio: '16/9',
+    borderRadius: T.radioLg, overflow: 'hidden', background: T.bg,
+  },
+  imgFull: {
+    width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+  },
+  badgeTipo: {
+    position: 'absolute', top: '1rem', left: '1rem',
+    background: T.naranja, color: '#fff',
+    padding: '0.4rem 0.8rem', borderRadius: T.radioPill,
+    fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.04em',
+    textTransform: 'uppercase', backdropFilter: 'blur(4px)',
+  },
+  thumbnailsRow: {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '0.8rem',
+  },
+  thumb: {
+    aspectRatio: '4/3', borderRadius: T.radioSm, overflow: 'hidden',
+    cursor: 'pointer', opacity: 0.6, border: `2px solid transparent`,
+    transition: 'opacity 0.2s',
+  },
+  thumbActivo: {
+    aspectRatio: '4/3', borderRadius: T.radioSm, overflow: 'hidden',
+    cursor: 'pointer', opacity: 1, border: `2px solid ${T.naranja}`,
+  },
+  bloqueInfo: {
+    background: T.blanco, padding: '2rem', borderRadius: T.radioLg,
+    border: `1px solid ${T.borde}`, boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+  },
+  ubicacion: {
+    color: T.textoMuted, fontSize: '1.05rem', margin: 0,
+  },
+  caracteristicasGrid: {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+    gap: '1rem', marginBottom: '1.5rem',
+  },
+  charItem: {
+    display: 'flex', flexDirection: 'column', gap: '0.2rem',
+    padding: '0.8rem', background: T.bg, borderRadius: T.radioSm,
+    border: `1px solid ${T.borde}`,
+  },
+  charLabel: {
+    fontSize: '0.75rem', color: T.textoMuted, textTransform: 'uppercase', letterSpacing: '0.04em',
+  },
+  charValue: {
+    fontSize: '1.1rem', fontWeight: 600, color: T.texto,
+  },
+  extrasList: {
+    display: 'flex', flexWrap: 'wrap', gap: '0.8rem',
+  },
+  extraTag: {
+    padding: '0.4rem 0.8rem', background: T.blanco, border: `1px solid ${T.borde}`,
+    borderRadius: T.radioPill, fontSize: '0.85rem', color: T.texto, fontWeight: 500,
+  },
+  tarjetaInversion: {
+    background: T.blanco, padding: '1.5rem', borderRadius: T.radioLg,
+    border: `1px solid ${T.borde}`, boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+  },
+  precioBox: {
+    display: 'flex', flexDirection: 'column', gap: '0.3rem', marginBottom: '1.25rem',
+  },
+  precioLabel: {
+    fontSize: '0.85rem', color: T.textoMuted,
+  },
+  precioValor: {
+    fontSize: '2rem', fontWeight: 800, color: T.texto, fontVariantNumeric: 'tabular-nums',
+  },
+  retornoBox: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '1rem', background: '#f8fafc', borderRadius: T.radioSm,
+    border: '1px solid #dcfce7',
+  },
+  retornoLabel: {
+    display: 'block', fontSize: '0.75rem', color: '#166534', textTransform: 'uppercase',
+    letterSpacing: '0.04em', marginBottom: '0.2rem',
+  },
+  retornoValor: {
+    fontSize: '1.25rem', fontWeight: 700, color: '#166534',
+  },
+  retornoChart: {
+    fontSize: '2rem', opacity: 0.8,
+  },
+  garantiaTexto: {
+    textAlign: 'center', fontSize: '0.75rem', color: T.textoMuted,
+    marginTop: '1.5rem',
+  },
+
+  // Modal especial para el Chat (más grande y sin padding en el body)
+  modalChat: {
+    ...G.modal,
+    width: '100%',
+    maxWidth: '1000px', // Aumentado de 500px a 900px
+    height: '85vh',    // Usamos viewport height en lugar de píxeles fijos
+    minHeight: '600px',
+    padding: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  modalChatHeader: {
+    padding: '1.25rem',
+    background: T.bg,
+    borderBottom: `1px solid ${T.borde}`,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  modalChatSub: {
+    fontSize: '0.85rem',
+    color: T.textoMuted,
+    marginTop: '0.2rem',
+    margin: 0,
+  },
+  btnCloseModal: {
+    background: 'none',
+    border: 'none',
+    fontSize: '1.2rem',
+    color: T.textoMuted,
+    cursor: 'pointer',
+    padding: '0.2rem',
+  },
+  modalChatBody: {
+    flex: 1,
+    overflow: 'hidden',
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+
+  // Modo Edición
+  editForm: {
+    background: T.blanco, padding: '2rem', borderRadius: T.radioLg,
+    border: `1px solid ${T.naranja}`, boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+  },
+  editHeader: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: '2rem', paddingBottom: '1rem', borderBottom: `1px solid ${T.borde}`,
+  },
+  editGrid: {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem',
+  },
+  inputGroup: {
+    display: 'flex', flexDirection: 'column', gap: '0.4rem',
+  },
+  editChecks: {
+    display: 'flex', flexWrap: 'wrap', gap: '1.5rem', marginTop: '2rem',
+    padding: '1.5rem', background: T.bg, borderRadius: T.radioSm, border: `1px solid ${T.borde}`,
+  },
+  checkItem: {
+    display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem',
+    color: T.texto, cursor: 'pointer',
+  },
 }

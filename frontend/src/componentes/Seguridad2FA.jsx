@@ -36,10 +36,10 @@ export default function Seguridad2FA({ otp_activo }) {
     setStep('idle')
   }
 
-  // ── 2FA YA ACTIVO ──────────────────────────────────────────
+
   if (activo) return (
     <div style={s.wrap}>
-      <div style={s.estadoBadge}>✅ Activado</div>
+      <div style={s.estadoBadge}>Activado</div>
       <p style={s.desc}>Tu cuenta está protegida con Google Authenticator.</p>
       <button style={s.btnRojo} onClick={handleDesactivar}>
         Desactivar 2FA
@@ -47,7 +47,7 @@ export default function Seguridad2FA({ otp_activo }) {
     </div>
   )
 
-  // ── PASO DEL QR ────────────────────────────────────────────
+
   if (step === 'qr') return (
     <div style={s.wrap}>
       <p style={s.paso}><strong>Paso 1.</strong> Escanea este QR con Google Authenticator:</p>
@@ -80,7 +80,7 @@ export default function Seguridad2FA({ otp_activo }) {
     </div>
   )
 
-  // ── ESTADO INICIAL ─────────────────────────────────────────
+
   return (
     <div style={s.wrap}>
       <div style={s.estadoBadge2}>⚠️ No activado</div>

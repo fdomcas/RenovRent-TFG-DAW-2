@@ -1,91 +1,77 @@
 import { Link, useNavigate } from 'react-router-dom'
 import useAuthStore from '../store/authStore.jsx'
+import { T } from '../theme.js'
 
 export default function Navbar() {
-const { user: usuario, logout } = useAuthStore()
+  const { user: usuario, logout } = useAuthStore()
   const navigate = useNavigate()
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  const handleLogout = () => { logout(); navigate('/login') }
 
   return (
-    <nav style={styles.nav}>
-      <Link to="/" style={styles.logo}>
-        🏠 <span style={styles.logoText}>RenovRent</span>
+    <nav style={s.nav}>
+      <Link to="/" style={s.logo}>
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="7" fill={T.naranja}/>
+          <path d="M6 20V13L14 7L22 13V20H17V15H11V20H6Z" fill="white"/>
+        </svg>
+        <span style={s.logoText}>RenovRent</span>
       </Link>
 
-      <div style={styles.menu}>
-        <Link to="/" style={styles.link}>Inicio</Link>
-        <Link to="/propiedades" style={styles.link}>Propiedades</Link>
-        <Link to="/recomendaciones" style={styles.link}>Recomendaciones</Link>
-        {usuario && <Link to="/perfil" style={styles.link}>Perfil</Link>}
+      <div style={s.menu}>
+        <Link to="/" style={s.link}>Inicio</Link>
+        <Link to="/propiedades" style={s.link}>Propiedades</Link>
+        <Link to="/recomendaciones" style={s.link}>Recomendaciones</Link>
+        {usuario && <Link to="/perfil" style={s.link}>Perfil</Link>}
       </div>
 
-      <div style={styles.right}>
+      <div style={s.right}>
         {usuario ? (
           <>
-            <span style={styles.username}>@{usuario.Nikname}</span>
-            <button style={styles.btnLogout} onClick={handleLogout}>Salir</button>
+            <div style={s.userChip}>
+              <div style={s.avatar}>{usuario.Nikname?.[0]?.toUpperCase()}</div>
+              <span style={s.username}>@{usuario.Nikname}</span>
+            </div>
+            <button style={s.btnLogout} onClick={handleLogout}>Salir</button>
           </>
         ) : (
-          <button style={styles.btnLogin} onClick={() => navigate('/login')}>
-            👤
-          </button>
+          <button style={s.btnLogin} onClick={() => navigate('/login')}>Iniciar sesión</button>
         )}
       </div>
     </nav>
   )
 }
 
-const styles = {
+const s = {
   nav: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0 2rem',
-    height: '64px',
-    background: '#fff',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '0 2rem', height: '64px', background: T.blanco,
+    borderBottom: `1px solid ${T.borde}`, position: 'sticky', top: 0, zIndex: 100,
   },
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    textDecoration: 'none',
-    fontSize: '1.2rem',
-  },
-  logoText: { fontWeight: '700', color: '#F97316' },
+  logo: { display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' },
+  logoText: { fontFamily: T.fontDisplay, fontWeight: '700', fontSize: '1.2rem', color: T.texto },
   menu: { display: 'flex', gap: '2rem' },
-  link: {
-    textDecoration: 'none',
-    color: '#333',
-    fontWeight: '500',
-    fontSize: '0.95rem',
-    transition: 'color 0.2s',
+  link: { textDecoration: 'none', color: T.textoSuave, fontWeight: '500', fontSize: '0.9rem' },
+  right: { display: 'flex', alignItems: 'center', gap: '0.8rem' },
+  userChip: {
+    display: 'flex', alignItems: 'center', gap: '0.5rem',
+    background: T.bgSecundario, padding: '0.3rem 0.7rem 0.3rem 0.3rem',
+    borderRadius: T.radioPill, border: `1px solid ${T.borde}`,
   },
-  right: { display: 'flex', alignItems: 'center', gap: '1rem' },
-  username: { color: '#666', fontSize: '0.9rem' },
+  avatar: {
+    width: '26px', height: '26px', borderRadius: '50%',
+    background: T.naranja, color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: '0.75rem', fontWeight: '700',
+  },
+  username: { color: T.textoSuave, fontSize: '0.85rem', fontWeight: '500' },
   btnLogin: {
-    background: 'none',
-    border: '1.5px solid #ddd',
-    borderRadius: '50%',
-    width: '38px',
-    height: '38px',
-    cursor: 'pointer',
-    fontSize: '1.1rem',
+    background: T.naranja, color: '#fff', border: 'none', borderRadius: '8px',
+    padding: '0.45rem 1.1rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.88rem',
   },
   btnLogout: {
-    background: '#F97316',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    padding: '0.4rem 0.9rem',
-    cursor: 'pointer',
-    fontWeight: '600',
+    background: 'none', color: T.textoMuted, border: `1.5px solid ${T.borde}`,
+    borderRadius: '8px', padding: '0.4rem 0.9rem', cursor: 'pointer',
+    fontWeight: '600', fontSize: '0.85rem',
   },
 }

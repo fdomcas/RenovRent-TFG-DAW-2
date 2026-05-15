@@ -3,7 +3,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 import requests
 from django.contrib.auth.models import AbstractUser
-# Create your models here.
+
 
 class Usuario(AbstractUser):
     nombre = models.CharField(max_length=100)
@@ -213,7 +213,7 @@ class Mensaje(models.Model):
     id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
     id_chat = models.ForeignKey(Chat, on_delete=models.CASCADE)
     mensaje = models.TextField()
-    fecha = models.DateField(default=date.today)
+    fecha = models.DateTimeField(auto_now_add=True)
 
 
     def __str__(self):
