@@ -39,7 +39,7 @@ export default function Seguridad2FA({ otp_activo }) {
 
   if (activo) return (
     <div style={s.wrap}>
-      <div style={s.estadoBadge}>✅ Activado</div>
+      <div style={s.estadoBadge}>Activado</div>
       <p style={s.desc}>Tu cuenta está protegida con Google Authenticator.</p>
       <button style={s.btnRojo} onClick={handleDesactivar}>
         Desactivar 2FA

@@ -408,7 +408,7 @@ export default function Perfil() {
         </div>
       </div>
 
-      {/* Modal editar perfil */}
+
       {seccion === 'perfil' && (
         <div style={G.overlay} onClick={() => setSeccion(null)}>
           <div style={G.modal} onClick={(e) => e.stopPropagation()}>
@@ -518,7 +518,7 @@ export default function Perfil() {
         </div>
       )}
 
-      {/* Modal contraseña */}
+
       {seccion === 'password' && (
         <div style={G.overlay} onClick={() => setSeccion(null)}>
           <div style={G.modal} onClick={(e) => e.stopPropagation()}>
@@ -568,7 +568,7 @@ export default function Perfil() {
         </div>
       )}
 
-      {/* Modal tarjeta */}
+
       {seccion === 'tarjeta' && (
         <div style={G.overlay} onClick={() => setSeccion(null)}>
           <div style={G.modal} onClick={(e) => e.stopPropagation()}>

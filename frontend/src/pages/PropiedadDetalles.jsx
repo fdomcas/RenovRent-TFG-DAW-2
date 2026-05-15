@@ -36,7 +36,7 @@ export default function PropiedadDetalle() {
   const [mostrarInvertir, setMostrarInvertir] = useState(false)
   const [esInversor, setEsInversor] = useState(false)
 
-  // NUEVO ESTADO: Para controlar si el modal del chat está abierto
+
   const [mostrarChat, setMostrarChat] = useState(false)
 
   const mostrarMsg = (msg, tipo = 'ok') => {
@@ -144,7 +144,7 @@ export default function PropiedadDetalle() {
         </div>
       )}
 
-      {/* Modal de Inversión */}
+
       {mostrarInvertir && (
         <ModalInversion
           inmueble={inmueble}
@@ -158,7 +158,7 @@ export default function PropiedadDetalle() {
         />
       )}
 
-      {/* Modal del Chat */}
+
       {mostrarChat && esInversor && (
         <div style={G.overlay} onClick={() => setMostrarChat(false)}>
           {/* Usamos un modal especial más grande para el chat */}

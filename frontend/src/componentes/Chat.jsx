@@ -85,7 +85,7 @@ export default function Chat() {
 
   return (
     <div style={s.containerModal}>
-      {/* Eliminado el div superior "header" con el botón Volver, porque el modal ya tiene cabecera y X para cerrar */}
+
 
       <div style={s.body}>
         <div style={s.colMensajes}>
@@ -174,7 +174,7 @@ export default function Chat() {
 }
 
 const s = {
-  // Ajustado para ocupar el 100% de la altura del modal sin márgenes externos
+
   containerModal: {
     display: 'flex',
     flexDirection: 'column',
@@ -186,7 +186,7 @@ const s = {
   dot:            { display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', marginRight: '6px' },
   estado:         { fontSize: '0.75rem', color: '#666', fontWeight: '500' },
 
-  // Eliminamos gap lateral y bordes redondeados porque el modal ya tiene bordes
+
   body:           { display: 'flex', flex: 1, minHeight: 0 },
   colMensajes:    { flex: 1, display: 'flex', flexDirection: 'column', background: '#fff', borderRight: '1px solid #eee' },
   mensajesScroll: { flex: 1, overflowY: 'auto', padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' },

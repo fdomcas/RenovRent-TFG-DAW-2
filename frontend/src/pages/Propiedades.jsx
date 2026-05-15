@@ -41,7 +41,7 @@ export default function Propiedades() {
           </div>
         </div>
 
-        {/* FILTROS */}
+
         <div style={s.filtrosBar}>
           <div style={s.filtroGrupo}>
             <label style={G.label}>📍 Ubicación</label>
@@ -81,7 +81,7 @@ export default function Propiedades() {
 
         {loading && <p style={s.info}>Cargando propiedades...</p>}
 
-        {/* GRID */}
+
         <div style={s.grid}>
           {filtrados.map(i => (
             <div key={i.id} style={s.card}

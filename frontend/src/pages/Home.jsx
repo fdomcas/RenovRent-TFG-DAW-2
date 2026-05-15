@@ -264,5 +264,5 @@ const s = {
   },
 }
 
-// Sobrescribimos el color de kpiValue para la tarjeta activa y normal
+
 s.kpiCard.kpiValue = { ...s.kpiValue, color: '#1a1a1a' }

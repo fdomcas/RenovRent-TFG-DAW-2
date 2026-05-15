@@ -28,7 +28,7 @@ class InversionesAdmin(admin.ModelAdmin):
 class PropuestasAdmin(admin.ModelAdmin):
     list_display = ['id_usuario', 'ubicacion', 'estado']
     list_filter = ['estado']
-    list_editable = ['estado']  # cambia el estado directamente desde la lista
+    list_editable = ['estado']
 
 
 @admin.register(Tarjeta)
