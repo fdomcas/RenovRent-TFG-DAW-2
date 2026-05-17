@@ -1,5 +1,6 @@
 from luhncheck import is_luhn
 from rest_framework import serializers
+from datetime import date
 from .models import Usuario, Tarjeta, Propuestas, Inmuebles, Inversiones, Chat, Mensaje, Perfil
 
 
@@ -17,8 +18,19 @@ class RegistroSerializer(serializers.ModelSerializer):
         fields = ['username', 'nombre', 'apellidos', 'Nikname','email','fecha_nacimiento', 'dni', 'password']
 
 
-    def create(self, validated_data):
-        return Usuario.objects.create_user(**validated_data)
+    def create(self, validated_data):         # ← único cambio
+        password = validated_data.pop('password')
+        user = Usuario(**validated_data)
+        user.set_password(password)
+        user.save()
+        return user
+
+    def validate_fecha_nacimiento(self, value):
+        hoy = date.today()
+        edad = hoy.year - value.year - ((hoy.month, hoy.day) < (value.month, value.day))
+        if edad < 18:
+            raise serializers.ValidationError("Debes ser mayor de 18 años para registrarte.")
+        return value
 
 
 class inmuebleSerializer(serializers.ModelSerializer):

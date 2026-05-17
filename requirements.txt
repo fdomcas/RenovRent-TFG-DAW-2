@@ -8,3 +8,5 @@ luhncheck
 django-cors-headers
 pyotp
 qrcode[pil]
+psycopg2-binary
+daphne

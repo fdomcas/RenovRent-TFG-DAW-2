@@ -66,6 +66,7 @@ class InversionesViewSet(viewsets.ModelViewSet):
 
         inmueble = serializer.validated_data.get('id_inmueble')
         cantidad = serializer.validated_data.get('cantidad')
+        cantidad = serializer.validated_data.get('cantidad')
 
         if cantidad > inmueble.disponible_para_invertir:
             raise ValidationError(

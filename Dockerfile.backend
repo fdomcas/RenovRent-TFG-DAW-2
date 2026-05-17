@@ -1,0 +1,30 @@
+# Usar una imagen oficial de Python
+FROM python:3.10-slim
+
+# Establecer variables de entorno de Python
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Crear el directorio de trabajo
+WORKDIR /app
+
+# Instalar las dependencias del sistema necesarias para PostgreSQL
+RUN apt-get update \
+    && apt-get install -y gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar el archivo de dependencias desde la raíz del proyecto
+COPY requirements.txt /app/
+
+# Instalar dependencias de Python
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Copiar todo el código del proyecto al contenedor
+COPY . /app/
+
+# Exponer el puerto de Django
+EXPOSE 8000
+
+# Comando para ejecutar Daphne (para WebSockets y Django)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "renovrent_tfg_daw_2.asgi:application"]
