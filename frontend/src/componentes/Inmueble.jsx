@@ -4,24 +4,25 @@ import api from '../api/axios.jsx'
 import Navbar from '../componentes/Navbar.jsx'
 import { T, G } from '../theme.js'
 
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return isMobile
+}
+
 const RETORNO_POR_TIPO = {
-  Casa: 8,
-  Apartamento: 7,
-  Piso: 7,
-  Chalet: 9,
-  Bungalow: 6,
-  Mansión: 10,
-  Dúplex: 7,
-  Ático: 8,
-  Local: 10,
-  Oficina: 9,
-  Nave: 8,
-  Garaje: 5,
-  Terreno: 4,
+  Casa: 8, Apartamento: 7, Piso: 7, Chalet: 9,
+  Bungalow: 6, Mansión: 10, Dúplex: 7, Ático: 8,
+  Local: 10, Oficina: 9, Nave: 8, Garaje: 5, Terreno: 4,
 }
 
 export default function CrearInmueble() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState(null)
@@ -55,7 +56,7 @@ export default function CrearInmueble() {
   }
 
   const F = (name, label, type = 'text', extra = {}) => (
-    <div key={name}>
+    <div key={name} style={{ flex: 1, minWidth: 0 }}>
       <label style={G.label}>{label}</label>
       <input style={G.input} type={type} name={name}
         placeholder={label} value={form[name]}
@@ -63,32 +64,57 @@ export default function CrearInmueble() {
     </div>
   )
 
-  return (
-    <div style={G.page}>
-      <Navbar />
-      <div style={G.container}>
+  const fila = (children) => (
+    <div style={{
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      gap: '1rem',
+    }}>
+      {children}
+    </div>
+  )
 
-        <div style={s.headerRow}>
+  return (
+    <div style={{ ...G.page, overflowX: 'hidden' }}>
+      <Navbar />
+      <div style={{
+        ...G.container,
+        padding: isMobile ? '1rem' : undefined,
+      }}>
+
+
+        <div style={{
+          ...s.headerRow,
+          flexDirection: isMobile ? 'column' : 'row',
+          gap: isMobile ? '1rem' : 0,
+          marginBottom: '1.5rem',
+        }}>
           <div>
             <h1 style={G.h1}>Añadir propiedad</h1>
             <p style={s.subtitulo}>Rellena los datos del nuevo inmueble</p>
           </div>
-          <button style={{ ...G.btnSecundario, alignSelf: 'center' }}
-            onClick={() => navigate('/propiedades')}>
+          <button
+            style={{ ...G.btnSecundario, alignSelf: isMobile ? 'flex-start' : 'center' }}
+            onClick={() => navigate('/propiedades')}
+          >
             ← Volver
           </button>
         </div>
 
-        <div style={s.card}>
+        {/* Card */}
+        <div style={{
+          ...s.card,
+          padding: isMobile ? '1.2rem' : '2rem',
+        }}>
           <form onSubmit={handleSubmit} style={s.form}>
 
-            <div style={s.fila}>
-              {F('nombre', 'Nombre del inmueble')}
-              {F('ubicacion', 'Ubicación')}
-            </div>
+            {fila([
+              F('nombre', 'Nombre del inmueble'),
+              F('ubicacion', 'Ubicación'),
+            ])}
 
-            <div style={s.fila}>
-              <div style={{ flex: 1 }}>
+            {fila([
+              <div key="tipo" style={{ flex: 1, minWidth: 0 }}>
                 <label style={G.label}>🏠 Tipo</label>
                 <select style={G.input} name="tipo"
                   value={form.tipo} onChange={handleChange} required>
@@ -97,12 +123,12 @@ export default function CrearInmueble() {
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
-              </div>
-              {F('precio', 'Precio (€)', 'number', { min: 0 })}
-            </div>
+              </div>,
+              F('precio', 'Precio (€)', 'number', { min: 0 }),
+            ])}
 
-            <div style={s.fila}>
-              <div style={{ flex: 1 }}>
+            {fila([
+              <div key="retorno" style={{ flex: 1, minWidth: 0 }}>
                 <label style={G.label}>📈 Retorno anual (%)</label>
                 <input
                   style={{ ...G.input, background: T.bg, cursor: 'not-allowed', color: T.textoMuted }}
@@ -110,9 +136,8 @@ export default function CrearInmueble() {
                 <small style={{ color: T.textoMuted, fontSize: '0.75rem' }}>
                   Se calcula según el tipo
                 </small>
-              </div>
-
-              <div style={{ flex: 1 }}>
+              </div>,
+              <div key="imagen" style={{ flex: 1, minWidth: 0 }}>
                 <label style={G.label}>🖼️ Imagen del inmueble</label>
                 <input type="file" accept="image/*"
                   style={{ ...G.input, padding: '0.4rem', cursor: 'pointer' }}
@@ -124,22 +149,33 @@ export default function CrearInmueble() {
                   }} required />
                 {preview && (
                   <img src={preview} alt="Preview"
-                    style={{ marginTop: '0.5rem', width: '100%', height: '150px',
-                      objectFit: 'cover', borderRadius: T.radioSm, border: `1px solid ${T.borde}` }} />
+                    style={{
+                      marginTop: '0.5rem',
+                      width: '100%',
+                      height: '150px',
+                      objectFit: 'cover',
+                      borderRadius: T.radioSm,
+                      border: `1px solid ${T.borde}`,
+                    }} />
                 )}
-              </div>
-            </div>
+              </div>,
+            ])}
 
             <div>
               <label style={G.label}>Descripción</label>
-              <textarea style={{ ...G.input, height: '100px', resize: 'vertical' }}
+              <textarea
+                style={{ ...G.input, height: '100px', resize: 'vertical' }}
                 name="descripcion" placeholder="Descripción del inmueble"
                 value={form.descripcion} onChange={handleChange} required />
             </div>
 
             {error && <div style={s.error}>{error}</div>}
 
-            <button type="submit" style={{ ...G.btnPrimario, padding: '0.85rem' }} disabled={loading}>
+            <button
+              type="submit"
+              style={{ ...G.btnPrimario, padding: '0.85rem', width: '100%' }}
+              disabled={loading}
+            >
               {loading ? 'Creando...' : '+ Crear inmueble'}
             </button>
 
@@ -152,18 +188,22 @@ export default function CrearInmueble() {
 }
 
 const s = {
-  headerRow:  { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' },
-  subtitulo:  { color: T.textoMuted, fontSize: '0.95rem', marginTop: '0.3rem' },
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  subtitulo: { color: T.textoMuted, fontSize: '0.95rem', marginTop: '0.3rem' },
   card: {
-    background: T.blanco, borderRadius: T.radioLg,
-    padding: '2rem', border: `1px solid ${T.borde}`,
+    background: T.blanco,
+    borderRadius: T.radioLg,
+    border: `1px solid ${T.borde}`,
     boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
   },
-  form:  { display: 'flex', flexDirection: 'column', gap: '1rem' },
-  fila:  { display: 'flex', gap: '1rem' },
+  form: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   error: {
     background: T.rojoBg, color: T.rojo,
     padding: '0.7rem 1rem', borderRadius: T.radioSm,
-    fontSize: '0.85rem', border: '1px solid #fecaca'
+    fontSize: '0.85rem', border: '1px solid #fecaca',
   },
 }
