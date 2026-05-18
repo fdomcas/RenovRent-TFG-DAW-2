@@ -39,7 +39,7 @@ class InmuebleViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['update', 'partial_update', 'create', 'destroy']:
             return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
 
 class PropuestaViewSet(viewsets.ModelViewSet):
@@ -65,6 +65,7 @@ class InversionesViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         inmueble = serializer.validated_data.get('id_inmueble')
+        cantidad = serializer.validated_data.get('cantidad')
         cantidad = serializer.validated_data.get('cantidad')
 
         if cantidad > inmueble.disponible_para_invertir:
