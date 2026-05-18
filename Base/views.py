@@ -39,7 +39,7 @@ class InmuebleViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['update', 'partial_update', 'create', 'destroy']:
             return [permissions.IsAdminUser()]
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
 
 class PropuestaViewSet(viewsets.ModelViewSet):

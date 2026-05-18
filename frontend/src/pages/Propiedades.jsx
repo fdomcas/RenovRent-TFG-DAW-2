@@ -12,8 +12,10 @@ export default function Propiedades() {
   const [tipos, setTipos] = useState([])
   const navigate = useNavigate()
   const [filtros, setFiltros] = useState({ ubicacion: '', tipo: '', precioMin: '', precioMax: '' })
+  const [esAdmin, setEsAdmin] = useState(false)  // ← añade esto
 
   useEffect(() => {
+    api.get('/usuarios/me/').then(r => setEsAdmin(r.data.is_staff)).catch(() => {})
     api.get('/inmuebles/').then(r => setInmuebles(r.data)).catch(() => {}).finally(() => setLoading(false))
     api.get('/inmuebles/tipos/').then(r => setTipos(r.data)).catch(() => {})
   }, [])
@@ -34,12 +36,20 @@ export default function Propiedades() {
       <Navbar />
       <div style={G.container}>
 
-        <div style={s.headerRow}>
-          <div>
-            <h1 style={G.h1}>Propiedades</h1>
-            <p style={s.subtitulo}>Descubre oportunidades de inversión inmobiliaria</p>
-          </div>
+      <div style={s.headerRow}>
+        <div>
+          <h1 style={G.h1}>Propiedades</h1>
+          <p style={s.subtitulo}>Descubre oportunidades de inversión inmobiliaria</p>
         </div>
+        {esAdmin && (
+          <button
+            style={{ ...G.btnPrimario, alignSelf: 'center' }}
+            onClick={() => navigate('/admin/inmuebles/CrearInmueble')}
+          >
+            + Añadir propiedad
+          </button>
+        )}
+      </div>
 
 
         <div style={s.filtrosBar}>
@@ -140,7 +150,12 @@ export default function Propiedades() {
 }
 
 const s = {
-  headerRow:  { marginBottom: '1.5rem' },
+  headerRow: {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: '1.5rem'
+},
   subtitulo:  { color: T.textoMuted, fontSize: '0.95rem', marginTop: '0.3rem' },
   filtrosBar: {
     display: 'flex', flexWrap: 'wrap', gap: '0.8rem', alignItems: 'flex-end',
