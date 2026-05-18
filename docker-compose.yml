@@ -71,6 +71,16 @@ services:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
 
+  # ─── Cloudflare Tunnel ──────────────────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: renovrent_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    depends_on:
+      - frontend
+    network_mode: "host"
+
 volumes:
   postgres_data:
   static_volume:
